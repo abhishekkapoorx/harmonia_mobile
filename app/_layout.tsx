@@ -15,6 +15,7 @@ export default function RootLayout() {
   }
   return (
     <>
+    {/* <TailwindProvider></TailwindProvider> */}
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="auth" />
