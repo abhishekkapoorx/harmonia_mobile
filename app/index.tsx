@@ -6,7 +6,7 @@ import { Image, SafeAreaView, Text, View } from "react-native"
 export default function WelcomeScreen() {
   const handleGetStarted = () => {
     // Navigate to the next screen
-    router.push("/home")
+    router.push("/questioneer")
   }
 
   return (

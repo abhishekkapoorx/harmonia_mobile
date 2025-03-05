@@ -5,10 +5,11 @@ interface InputProps {
     value: string;
     setVal: (val: string) => void;
     type?: string;
+    className?: string;
 }
-export const Input = ({label, value, setVal}: InputProps) => {
+export const Input = ({label, value, setVal, className}: InputProps) => {
     return (
-        <View>
+        <View className={className}>
             <Text className="text-md font-medium text-gray-700 font-anonymousPro mb-1">{label}</Text>
             <TextInput
 
