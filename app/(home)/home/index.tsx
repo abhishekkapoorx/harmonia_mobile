@@ -2,38 +2,45 @@ import HomeUpper from '@/components/HomeUpper'
 import ProfileNavbar from '@/components/ProfileNavbar'
 import { color } from '@/constants/color'
 import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React from 'react'
 import { FlatList, Image, ImageBackground, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 const HomePage = () => {
+    const router = useRouter();
+
     const flatListData = [
         {
             title: "Chat",
             description: "No More Guesswork—Ask Away!",
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c1} />,
             bg: "bg-c6",
-            color: "text-c1"
+            color: "text-c1",
+            link: "/chat"
         },
         {
             title: "Meal Planner",
             description: "Plan meal like a nutritionist!",
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
-            bg: "bg-c1",
-            color: "text-c6"
+            bg: "bg-c2",
+            color: "text-c6",
+            link: "/meal"
+
         },
         {
             title: "Track Health",
             description: "Your Body. Your Control.",
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c1} />,
             bg: "bg-c6",
-            color: "text-c1"
+            color: "text-c1",
+            link: "/track"
         },
         {
             title: "Recommended Products",
             description: "Products tailored for just for your health.",
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
-            bg: "bg-c1",
+            bg: "bg-c2",
             color: "text-c6"
         },
     ]
@@ -96,7 +103,7 @@ const HomePage = () => {
                         }
                         className='w-full flex-1 px-4'
                         renderItem={({ item }) => (
-                            <TouchableOpacity activeOpacity={0.8} key={item.title} className={`flex-1 flex-row justify-start items-center ${item.bg} w-full p-4 rounded-2xl m-2 border-c6 border-2 gap-2 h-32`}>
+                            <TouchableOpacity onPress={() => router.push(item.link? item.link as any : "/home")} activeOpacity={0.8} key={item.title} className={`flex-1 flex-row justify-start items-center elevation ${item.bg} w-full p-4 rounded-2xl m-2 border-c6 border-2 gap-2 h-32`}>
                                 <View className='mr-5'>
                                     {item.icon}
                                 </View>
