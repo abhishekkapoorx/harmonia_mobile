@@ -2,89 +2,101 @@ import { BackButtonBar } from "@/components/BackButtonBar";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/auth/Input";
 import { useSession } from "@/providers/SessionCtx";
-import { validateEmail } from "@/utils/validators";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Formik, FormikValues } from 'formik';
+import React, { useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
+import * as Yup from 'yup';
+
+const SignUpSchema = Yup.object().shape({
+    name: Yup.string()
+        .required('Required')
+        .min(2, 'Name must be at least 2 characters')
+        .max(50, 'Name must be less than 50 characters'),
+    email: Yup.string()
+        .email('Invalid email')
+        .required('Required')
+        .min(5, 'Email must be at least 5 characters')
+        .max(50, 'Email must be less than 50 characters'),
+    password: Yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .max(20, 'Password must be less than 20 characters')
+        .required('Required'),
+});
 
 export default function SignUpScreen() {
     const router = useRouter();
-    const [Name, setName] = useState("");
-    const [Email, setEmail] = useState("");
-    const [Password, setPassword] = useState("");
     const [isDisabled, setIsDisabled] = useState(false);
-    const [EmailError, setEmailError] = useState("");
-    const [PasswordError, setPasswordError] = useState("");
-    const [SignupError, setSignupError] = useState("");
-
     const { session, signUp } = useSession();
 
     if (session) {
         router.replace({ pathname: '/home' });
     }
 
-
-    const handleSubmit = async () => {
-        // Email validation
-        if (!validateEmail(Email)) {
-            setEmailError('Please enter a valid email.');
-            return;
-        }
-
-        // Password validation
-        if (Password.length < 4) {
-            setPasswordError('Password must be at least 8 characters.');
-            return;
-        }
+    const handleSignUp = async (values: FormikValues) => {
+        setIsDisabled(true);
 
         try {
-            const name = Name;
-            const email = Email;
-            const password = Password;
-            console.log(email, password);
-            const response = await signUp({name, email, password});
-            console.log(response);
-
+            const { name, email, password } = values;
+            const response = await signUp({ name, email, password });
+            Alert.alert('Success', response?.msg || 'Sign up successful');
             router.replace({ pathname: '/home' });
-            setIsDisabled(false);
-            setEmail('');
-            setPassword('');
         } catch (error: any) {
-
-            setSignupError(error?.response?.data?.message || 'Signup failed. Please try again.');
+            Alert.alert('Error', error?.response?.msg || 'Sign up failed. Please try again.');
         }
-
-    };
-
+        setIsDisabled(false);
+    }
 
     return (
-        <View className="flex-1 bg-gray-100 p-6">
+        <View className="flex-1 bg-c3 py-8 px-4">
             <BackButtonBar text="Sign Up" />
+            <Formik
+                initialValues={{ name: '', email: '', password: '' }}
+                onSubmit={values => handleSignUp(values)}
+                validationSchema={SignUpSchema}
+            >
+                {({ handleChange, handleBlur, handleSubmit, values, errors, isSubmitting, isValid }) => (
+                    <>
+                        <View className="space-y-4 mt-10 gap-y-4">
+                            <Input 
+                                label="Name" 
+                                value={values.name} 
+                                setVal={handleChange('name')} 
+                                className="mb-8" 
+                                error={errors.name} 
+                            />
+                            <Input 
+                                label="Email" 
+                                value={values.email} 
+                                setVal={handleChange('email')} 
+                                className="mb-8" 
+                                error={errors.email} 
+                            />
+                            <Input 
+                                label="Password" 
+                                value={values.password} 
+                                setVal={handleChange('password')} 
+                                className="mb-8" 
+                                error={errors.password} 
+                            />
+                        </View>
 
-            <View className="space-y-4 mt-10 gap-y-4">
-                <Input label="Name" value={Name} setVal={setName} className="border-b border-c6 mb-8" />
-                <Input label="Email" value={Email} setVal={setEmail} className="border-b border-c6 mb-8" />
-                <Input label="Password" value={Password} setVal={setPassword} className="border-b border-c6 mb-8" />
-
-            </View>
-
-
-            {PasswordError ? (
-                <Text className="text-red-500 text-sm mt-1">{PasswordError}</Text>
-            ) : null}
-
-            {SignupError ? (
-                <Text className="text-red-500 text-sm mt-1">{SignupError}</Text>
-            ) : null}
-
-            <Button disabled={isDisabled} onPressh={() => handleSubmit()} classNames="bg-c6 mt-20" textClasses="text-c1 text-lg" label="Sign Up" />
-            {/* <Text className="text-center text-gray-500 text-2xl my-8 font-anonymousPro">Or</Text>
-
-            <Button onPressh={handleSubmit} classNames="bg-c3" textClasses=" text-lg font-semibold" label="Sign In with Google" /> */}
+                        <Button 
+                            disabled={!isValid} 
+                            loading={isSubmitting} 
+                            onPressh={handleSubmit} 
+                            classNames={`bg-c6 mt-20 ${!isValid ? "opacity-70" : ""}`} 
+                            textClasses={`text-c1 text-xl ${!isValid ? "opacity-70" : ""}`} 
+                            label="Sign Up" 
+                        />
+                    </>
+                )}
+            </Formik>
+            <Button onPressh={() => { }} classNames="bg-c3 mt-8" textClasses="text-xl font-semibold" label="Sign Up with Google" />
 
             {/* Already have an account? */}
             <View className="text-center text-gray-600 mt-6 flex flex-row items-center justify-center font-questrial">
-                <Text>Already have an account?{" "}</Text>
+                <Text className="font-questrial">Already have an account?{" "}</Text>
                 <Pressable onPress={() => router.push("/auth/sign-in")} className="font-semibold text-black flex justify-center items-center">
                     <Text className="flex justify-center items-center font-questrial">
                         Sign In

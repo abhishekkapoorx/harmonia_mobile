@@ -10,9 +10,7 @@ interface User {
 }
 
 type LoginResponse = {
-    data: {
-        msg: string, data: { user: User, access_token: string, refresh_token: string }
-    }
+    msg: string, data: { user: User, access_token: string, refresh_token: string }
 } | null;
 
 interface SessionContextType {
@@ -25,7 +23,7 @@ interface SessionContextType {
     isAuthenticated: boolean;
 }
 
-const AuthContext = createContext<SessionContextType|undefined>(undefined);
+const AuthContext = createContext<SessionContextType | undefined>(undefined);
 
 
 // This hook can be used to access the user info.
@@ -58,10 +56,16 @@ export function SessionProvider({ children }: PropsWithChildren) {
             }
         } catch (error) {
             console.error('Error signing in:', error);
+            return {
+                data: {
+                    msg: 'Error signing in',
+                    data: null
+                }
+            }
         }
     }
 
-    const signUp= async ({ name, email, password }: { name: string, email: string, password: string }) => {
+    const signUp = async ({ name, email, password }: { name: string, email: string, password: string }) => {
         try {
             const data = await signupUser({ name: name, email: email, password: password });
             if (data) {
@@ -74,7 +78,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
                 return data;
             }
-            
+
         } catch (error) {
             console.error('Error signing up:', error);
             return {

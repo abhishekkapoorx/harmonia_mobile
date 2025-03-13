@@ -4,10 +4,15 @@ import { Input } from "@/components/auth/Input";
 import { useSession } from "@/providers/SessionCtx";
 import { validateEmail } from "@/utils/validators";
 import { useRouter } from "expo-router";
-import { Formik } from 'formik';
+import { Formik, FormikValues } from 'formik';
 import React, { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
+import * as Yup from 'yup';
 
+const SignInSchema = Yup.object().shape({
+    email: Yup.string().email('Invalid email').required('Required').min(5, 'Email must be at least 5 characters').max(50, 'Email must be less than 50 characters'),
+    password: Yup.string().min(8, 'Password must be at least 8 characters').max(20, 'Password must be less than 20 characters').required('Required'),
+});
 
 export default function SignInScreen() {
     const router = useRouter();
@@ -15,9 +20,6 @@ export default function SignInScreen() {
     const [Email, setEmail] = useState("");
     const [Password, setPassword] = useState("");
     const [isDisabled, setIsDisabled] = useState(false);
-    const [EmailError, setEmailError] = useState("");
-    const [PasswordError, setPasswordError] = useState("");
-    const [SigninError, setSigninError] = useState("");
 
     const { session, signIn } = useSession();
 
@@ -25,58 +27,43 @@ export default function SignInScreen() {
         router.replace({ pathname: '/home' });
     }
 
-    const handleSubmit = async () => {
+    const handleSignIn = async (values: FormikValues) => {
         setIsDisabled(true);
-        if (!validateEmail(Email)) {
-            setEmailError('Please enter a valid email.');
-            setIsDisabled(false);
-            return;
-        }
-
-        // Password validation
-        if (Password.length < 4) {
-            setPasswordError('Password must be at least 8 characters.');
-            setIsDisabled(false);
-            return;
-        }
 
         try {
-            const name = Name;
-            const email = Email;
-            const password = Password;
-            console.log(email, password);
+            const email = values.email;
+            const password = values.password;
             const response = await signIn({ email, password });
-            console.log(response);
+            Alert.alert('Success', response?.msg || 'Signin successful');
+            console.log("message:::::: -> ",response?.msg);
 
 
             router.replace({ pathname: '/home' });
             setEmail('');
             setPassword('');
         } catch (error: any) {
-
-            setSigninError(error?.response?.data?.message || 'Signup failed. Please try again.');
+            Alert.alert('Error', error?.response?.msg || 'Signup failed. Please try again.');
         }
         setIsDisabled(false);
 
     }
 
     return (
-        <View className="flex-1 bg-gray-100 p-6">
+        <View className="flex-1 bg-c3 py-8 px-4">
             <BackButtonBar text="Sign In" />
             <Formik
-                initialValues={{ email: '' }}
-                onSubmit={values => console.log(values)}
+                initialValues={{ email: '', password: '' }}
+                onSubmit={values => handleSignIn(values)}
+                validationSchema={SignInSchema}
             >
-                {({ handleChange, handleBlur, handleSubmit, values }) => (
+                {({ handleChange, handleBlur, handleSubmit, values, errors, isSubmitting, isValid }) => (
                     <>
                         <View className="space-y-4 mt-10 gap-y-4">
-                            <Input label="Email" value={Email} setVal={setEmail} className="border-b border-c6 mb-8" />
-                            <Input label="Password" value={Password} setVal={setPassword} className="border-b border-c6 mb-8" />
-
+                            <Input label="Email" value={values.email} setVal={handleChange('email')} className="mb-8" error={errors.email} />
+                            <Input label="Password" value={values.password} setVal={handleChange('password')} className="mb-8" error={errors.password} />
                         </View>
 
-
-                        <Button disabled={isDisabled} onPressh={handleSubmit} classNames="bg-c6 mt-20" textClasses="text-c1 text-xl" label="Sign In" />
+                        <Button disabled={!isValid} loading={isSubmitting} onPressh={handleSubmit} classNames={`bg-c6 mt-20 ${!isValid ? "opacity-70" : ""}`} textClasses={`text-c1 text-xl ${!isValid ? "opacity-70" : ""}`} label="Sign In" />
                     </>
                 )}
             </Formik>
