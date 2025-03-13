@@ -1,28 +1,32 @@
-import { Stack } from "expo-router";
-import "../global.css";
-import { StatusBar } from "expo-status-bar";
+import { SessionProvider } from "@/providers/SessionCtx";
 import { useFonts } from "expo-font";
-import { ActivityIndicator } from "react-native";
+import { SplashScreen, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import React from "react";
+import { ActivityIndicator, SafeAreaView, useColorScheme } from "react-native";
+import "../global.css";
+
+SplashScreen.preventAutoHideAsync();
+
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "questrial": require("../assets/fonts/Questrial-Regular.ttf"),
     "anonymousPro": require("../assets/fonts/AnonymousPro-Regular.ttf"),
   });
+  const colorScheme = useColorScheme();
 
   if (!fontsLoaded) {
     return <ActivityIndicator />;
+  } else {
+    SplashScreen.hideAsync();
   }
   return (
-    <>
-    {/* <TailwindProvider></TailwindProvider> */}
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="questioneer" />
-      </Stack>
-      <StatusBar style="dark" />
-    </>
-
+    <SessionProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="auth" />
+        </Stack>
+    </SessionProvider>
   );
 }

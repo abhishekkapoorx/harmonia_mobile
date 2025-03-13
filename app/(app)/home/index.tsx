@@ -56,7 +56,7 @@ const HomePage = () => {
                     <HomeUpper /> */}
 
 
-                <View className='my-20 flex-1'>
+                <View className='my-5 flex-1'>
                     <FlatList
                         data={flatListData}
                         keyExtractor={(item, index) => item.title}

@@ -1,14 +1,15 @@
 import { Ionicons } from "@expo/vector-icons"
 import { Image, Text, View } from "react-native"
 import { useAuth } from "@/providers/AuthCtx";
+import { useSession } from "@/providers/SessionCtx";
 
 const HomeUpper = () => {
-    const { user } = useAuth();
-    console.log('user', user)
+    const { userData } = useSession();
+    console.log('user', userData)
     return (
         <View className='flex w-full mt-10'>
             <View className='w-full flex justify-start items-start'>
-                <Text className='text-2xl font-questrial'>Welcome {user?.name}</Text>
+                <Text className='text-2xl font-questrial'>Welcome {userData?.name}</Text>
             </View>
 
             <View className="flex-1 justify-center items-center mt-10">
