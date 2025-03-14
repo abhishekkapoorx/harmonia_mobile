@@ -5,7 +5,6 @@ import { useSession } from "@/providers/SessionCtx";
 
 const HomeUpper = () => {
     const { userData } = useSession();
-    console.log('user', userData)
     return (
         <View className='flex w-full mt-10'>
             <View className='w-full flex justify-start items-start'>

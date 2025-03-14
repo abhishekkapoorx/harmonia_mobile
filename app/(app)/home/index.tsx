@@ -14,7 +14,7 @@ const HomePage = () => {
     useEffect(() => {
         const getUserDetails = async () => {
             const userDetails = await axiosInstance.get('/user/user-details')
-            console.log("User Data:", userDetails);
+            // console.log("User Data:", userDetails);
             if (userDetails.status === 401) {
                 Alert.alert('Unauthorized', userDetails.data.msg)
                 router.push('/auth/sign-in')
@@ -59,14 +59,6 @@ const HomePage = () => {
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
             bg: "bg-c2",
             color: "text-c6"
-        },
-        {
-            title: "Questioner",
-            description: "Get your personalized health plan.",
-            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
-            bg: "bg-c2",
-            color: "text-c6",
-            link: "/home/questioneer"
         },
     ]
 

@@ -14,7 +14,7 @@ axiosInstance.interceptors.request.use(
     const token = session
 
 
-    console.log("Token:", token);
+    // console.log("Token:", token);
 
    
     if (config.headers["Authorization"]) {

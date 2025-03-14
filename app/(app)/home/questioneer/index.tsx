@@ -328,7 +328,7 @@ const Questioneer = () => {
             }
         } catch (error: any) {
             Alert.alert('Error', error?.response?.data?.msg || 'Failed to submit form. Please try again.');
-            console.log("Error:", error);
+            // console.log("Error:", error);
         } finally {
             setSubmitting(false);
         }

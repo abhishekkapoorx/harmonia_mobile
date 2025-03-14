@@ -7,7 +7,7 @@ export const signupUser = async (userData: {
 }) => {
   try {
     const response = await axiosInstance.post("/auth/register", userData);
-    console.log(response.data);
+    // console.log(response.data);
     return response.data;
   } catch (error: any) {
     console.error("Signup API Error:", error.response?.data || error.message);
@@ -38,7 +38,7 @@ export const verifyEmailOTP = async (params: {
   role: string;
 }) => {
   try {
-    console.log(params);
+    // console.log(params);
     const response = await axiosInstance.post("/user/auth/otp/verify", params);
 
     return response.data;

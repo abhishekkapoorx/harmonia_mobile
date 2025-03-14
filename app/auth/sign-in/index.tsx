@@ -35,7 +35,7 @@ export default function SignInScreen() {
             const password = values.password;
             const response = await signIn({ email, password });
             Alert.alert('Success', response?.msg || 'Signin successful');
-            console.log("message:::::: -> ",response?.msg);
+            // console.log("message:::::: -> ",response?.msg);
 
 
             router.replace({ pathname: '/home' });

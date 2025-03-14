@@ -45,7 +45,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     setToken(storedToken);
                     setIsAuthenticated(true);
                     setUser(JSON.parse(await AsyncStorage.getItem("user_data") || "{}"));
-                    console.log("in checkAuthStatus", await AsyncStorage.getItem("user_data"));
+                    // console.log("in checkAuthStatus", await AsyncStorage.getItem("user_data"));
                 }
             } catch (error) {
                 console.error("Error fetching auth data", error);
@@ -59,9 +59,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const logIn = async (email: string, password: string) => {
         try {
-            console.log({ email, password })
+            // console.log({ email, password })
             const data = await loginUser({ email: email, password: password });
-            console.log("this is data after login",data)
+            // console.log("this is data after login",data)
 
 
             if (data) {
@@ -71,8 +71,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
                 await AsyncStorage.setItem("auth_token", data.data.access_token);
                 await AsyncStorage.setItem("user_data", JSON.stringify(user_data));
-                console.log("AsyncStorage set user data: ", await AsyncStorage.getItem("user_data"))
-                console.log("AsyncStorage set auth token: ", await AsyncStorage.getItem("auth_token"))
+                // console.log("AsyncStorage set user data: ", await AsyncStorage.getItem("user_data"))
+                // console.log("AsyncStorage set auth token: ", await AsyncStorage.getItem("auth_token"))
 
                 setIsAuthenticated(true);
                 
@@ -88,9 +88,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const register = async (name: string, email: string, password: string) => {
         try {
-            console.log({ name, email, password })
+            // console.log({ name, email, password })
             const data = await signupUser({ name: name, email: email, password: password });
-            console.log(data)
+            // console.log(data)
 
 
             if (data) {
