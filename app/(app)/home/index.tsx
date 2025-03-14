@@ -1,14 +1,31 @@
 import HomeUpper from '@/components/HomeUpper'
 import ProfileNavbar from '@/components/ProfileNavbar'
 import { color } from '@/constants/color'
+import axiosInstance from '@/http/axiosInstance'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import React from 'react'
-import { FlatList, Image, ImageBackground, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect } from 'react'
+import { Alert, FlatList, Image, ImageBackground, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 const HomePage = () => {
     const router = useRouter();
+
+    useEffect(() => {
+        const getUserDetails = async () => {
+            const userDetails = await axiosInstance.get('/user/user-details')
+            console.log("User Data:", userDetails);
+            if (userDetails.status === 401) {
+                Alert.alert('Unauthorized', userDetails.data.msg)
+                router.push('/auth/sign-in')
+            }
+            else if (userDetails.status === 404) {
+                Alert.alert('User Details Not Found', userDetails.data.msg)
+                router.push('/home/questioneer')
+            }
+        };
+        getUserDetails();
+    }, []);
 
     const flatListData = [
         {
@@ -42,6 +59,14 @@ const HomePage = () => {
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
             bg: "bg-c2",
             color: "text-c6"
+        },
+        {
+            title: "Questioner",
+            description: "Get your personalized health plan.",
+            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
+            bg: "bg-c2",
+            color: "text-c6",
+            link: "/home/questioneer"
         },
     ]
 

@@ -33,6 +33,14 @@ export async function setStorageItemAsync(key: string, value: string | null) {
   }
 }
 
+export function getStorageItemAsync(key: string): Promise<string | null> {
+  if (Platform.OS === 'web') {
+    return Promise.resolve(localStorage.getItem(key));
+  } else {
+    return SecureStore.getItemAsync(key);
+  }
+}
+
 export function useStorageState(key: string): UseStateHook<string> {
   // Public
   const [state, setState] = useAsyncState<string>();

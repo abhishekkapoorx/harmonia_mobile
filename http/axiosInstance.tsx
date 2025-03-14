@@ -1,5 +1,5 @@
+import { getStorageItemAsync } from "@/hooks/useStorageState";
 import axios from "axios";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const axiosInstance = axios.create();
 
@@ -10,8 +10,11 @@ axiosInstance.defaults.baseURL = "http://192.168.15.182:5000/";
 
 axiosInstance.interceptors.request.use(
   async (config: any) => {
-   
-    const token = await AsyncStorage.getItem("auth_token");
+    const session = await getStorageItemAsync('session');
+    const token = session
+
+
+    console.log("Token:", token);
 
    
     if (config.headers["Authorization"]) {
