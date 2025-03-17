@@ -6,7 +6,7 @@ import { TouchableOpacity, Text } from "react-native"
 export const BackButtonBar = ({text}: {text: string}) => {
     const router = useRouter();
     return (
-        <TouchableOpacity onPress={() => router.back()} className="my-8 flex flex-row justify-start items-center">
+        <TouchableOpacity onPress={() => router.back()} className="my-10 py-10 flex flex-row justify-start items-center">
             <Ionicons name="chevron-back" size={24} color="black" className="mr-5" />
             <Text className="font-questrial text-2xl mt-2 flex items-center justify-center" >{text}</Text>
         </TouchableOpacity>
