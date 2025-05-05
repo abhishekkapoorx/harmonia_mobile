@@ -1,7 +1,9 @@
-import { Button } from "@/components/Button"
+import { Button } from "@/components/ui/button"
+import { Text } from "@/components/ui/text"
+import { Ionicons } from "@expo/vector-icons"
 import { router } from "expo-router"
 import { StatusBar } from "expo-status-bar"
-import { Image, SafeAreaView, Text, View } from "react-native"
+import { Image, SafeAreaView, View } from "react-native"
 
 export default function WelcomeScreen() {
   const handleGetStarted = () => {
@@ -23,22 +25,16 @@ export default function WelcomeScreen() {
 
 
       <View className="items-center space-y-1 mb-8">
-        <Text className="text-4xl font-medium text-gray-600 font-questrial">HARMONIA</Text>
-        <Text className="text-base text-gray-500 font-questrial">Wellness in Harmony with You</Text>
+        <Text className="text-6xl font-light dark:text-gray-200">HARMONIA</Text>
+        <Text className="text-base dark:text-gray-300">Wellness in Harmony with You</Text>
       </View>
 
-      {/* <Button onPress={handleGetStarted} className="bg-c1 w-full" textClass="text-2xl" /> */}
-
-      {/* <TouchableOpacity
-        // className='border-2 p-8 flex flex-row bg-c1 justify-center items-center rounded-full'
-        className={`bg-c1 w-full border-2 elevation-lg rounded-full py-4 px-8 flex-row items-center justify-center`}
-        onPress={handleGetStarted}
-        activeOpacity={0.8}
-      >
-        <Text className={"text-gray-800 font-anonymousPro text-2xl" }>Get Started</Text>
-        <Ionicons name="chevron-forward-outline" size={24} className="text-c6" />
-      </TouchableOpacity> */}
-      <Button onPressh={handleGetStarted} classNames="bg-c1 w-full" textClasses="text-2xl" label="Get Started" />
+      <Button className="flex flex-row w-full" onPress={handleGetStarted} variant={"default"} size={"lg"}>
+        <>
+          <Text>Get Started</Text>
+          <Ionicons name="chevron-forward-outline" size={24} />
+        </>
+      </Button>
     </SafeAreaView>
   )
 }

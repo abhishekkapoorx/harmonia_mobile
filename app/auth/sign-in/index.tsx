@@ -1,6 +1,6 @@
 import { BackButtonBar } from "@/components/BackButtonBar";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/auth/Input";
+import { Input } from "@/components/auth/InputAuth";
 import { useSession } from "@/providers/SessionCtx";
 import { validateEmail } from "@/utils/validators";
 import { useRouter } from "expo-router";
@@ -49,7 +49,7 @@ export default function SignInScreen() {
     }
 
     return (
-        <View className="flex-1 bg-c3 py-8 px-4">
+        <View className="flex-1 px-4">
             <BackButtonBar text="Sign In" />
             <Formik
                 initialValues={{ email: '', password: '' }}

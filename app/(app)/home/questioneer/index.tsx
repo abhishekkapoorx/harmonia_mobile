@@ -1,4 +1,4 @@
-import { Input } from '@/components/auth/Input';
+import { Input } from '@/components/auth/InputAuth';
 import { BackButtonBar } from '@/components/BackButtonBar';
 import { StatusBar } from 'expo-status-bar';
 import { View, FlatList, Text, Alert } from 'react-native';

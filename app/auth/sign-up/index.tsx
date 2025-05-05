@@ -1,6 +1,6 @@
 import { BackButtonBar } from "@/components/BackButtonBar";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/auth/Input";
+import { Input } from "@/components/auth/InputAuth";
 import { useSession } from "@/providers/SessionCtx";
 import { useRouter } from "expo-router";
 import { Formik, FormikValues } from 'formik';

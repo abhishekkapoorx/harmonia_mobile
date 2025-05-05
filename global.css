@@ -2,32 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-@font-face {
-    font-family: "anonymousPro";
-    src: url("./assets/fonts/AnonymousPro-Regular.ttf") format("truetype");
-    font-weight: 400;
-    /* src: url("./assets/fonts/AnonymousPro-Regular.ttf") url("./assets/fonts/AnonymousPro-Bold.ttf") url("./assets/fonts/AnonymousPro-BoldItalic.ttf") url("./assets/fonts/AnonymousPro-Italic.ttf"); */
-}
-@font-face {
-    font-family: "anonymousPro";
-    src: url("./assets/fonts/AnonymousPro-Bold.ttf") format("truetype");
-    font-weight: 700;
-}
+@layer base {
+    :root {
+        --background: 137 63% 98%;
+        --foreground: 137 72% 4%;
+        --muted: 137 23% 93%;
+        --muted-foreground: 137 1% 29%;
+        --popover: 137 63% 97%;
+        --popover-foreground: 137 72% 3%;
+        --card: 137 63% 97%;
+        --card-foreground: 137 72% 3%;
+        --border: 220 13% 91%;
+        --input: 220 13% 91%;
+        --primary: 137 45% 65%;
+        --primary-foreground: 137 45% 5%;
+        --secondary: 137 12% 86%;
+        --secondary-foreground: 137 12% 26%;
+        --accent: 137 18% 76%;
+        --accent-foreground: 137 18% 16%;
+        --destructive: 9 97% 36%;
+        --destructive-foreground: 0 0% 100%;
+        --ring: 137 45% 65%;
+        --chart-1: 137 45% 65%;
+        --chart-2: 137 12% 86%;
+        --chart-3: 137 18% 76%;
+        --chart-4: 137 12% 89%;
+        --chart-5: 137 48% 65%;
+        --radius: 0.5rem;
+    }
 
-@font-face {
-    font-family: "anonymousPro";
-    src: url("./assets/fonts/AnonymousPro-BoldItalic.ttf") format("truetype");
-    font-weight: 700;
-    font-style: italic;
-}
-
-@font-face {
-    font-family: "anonymousPro";
-    src: url("./assets/fonts/AnonymousPro-Italic.ttf") format("truetype");
-    font-weight: 400;
-    font-style: italic;
-}
-@font-face {
-    font-family: "questrial";
-    src: url("./assets/fonts/Questrial-Regular.ttf");
+    .dark {
+        --background: 137 40% 2%;
+        --foreground: 137 12% 99%;
+        --muted: 137 23% 7%;
+        --muted-foreground: 137 1% 71%;
+        --popover: 137 40% 3%;
+        --popover-foreground: 0 0% 100%;
+        --card: 137 40% 3%;
+        --card-foreground: 0 0% 100%;
+        --border: 215 27.9% 16.9%;
+        --input: 215 27.9% 16.9%;
+        --primary: 137 45% 65%;
+        --primary-foreground: 137 45% 5%;
+        --secondary: 137 18% 14%;
+        --secondary-foreground: 137 18% 74%;
+        --accent: 137 26% 21%;
+        --accent-foreground: 137 26% 81%;
+        --destructive: 9 97% 48%;
+        --destructive-foreground: 0 0% 100%;
+        --ring: 137 45% 65%;
+        --chart-1: 137 45% 65%;
+        --chart-2: 137 18% 14%;
+        --chart-3: 137 26% 21%;
+        --chart-4: 137 18% 17%;
+        --chart-5: 137 48% 65%;
+    }
 }
