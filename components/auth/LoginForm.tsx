@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { Ionicons } from "@expo/vector-icons";
-import { FormikProps } from "formik";
+import { FormikProps, FormikErrors } from "formik";
 
 // Define form values types
 interface SignInFormValues {
@@ -49,10 +49,17 @@ export function LoginForm<T extends SignInFormValues | SignUpFormValues>({
     handleChange,
     handleBlur,
     handleSubmit,
-    errors = {},
+    errors = {} as FormikErrors<T>,
     isSubmitting = false,
     isValid = true
   } = formik || {};
+
+  // Type-safe error message renderer
+  const ErrorMessage: React.FC<{ error: string | string[] | undefined }> = ({ error }) => {
+    if (!error) return null;
+    const message = typeof error === 'string' ? error : Array.isArray(error) ? error[0] : '';
+    return message ? <Text className="text-red-500">{message}</Text> : null;
+  };
 
   return (
     <View className={cn("flex flex-1 flex-col gap-6 justify-center", className)} {...props}>
@@ -78,7 +85,7 @@ export function LoginForm<T extends SignInFormValues | SignUpFormValues>({
                     onChangeText={handleChange ? handleChange('name') : undefined}
                     onBlur={handleBlur ? handleBlur('name') : undefined}
                   />
-                  {isSignUp && errors.name && <Text className="text-red-500">{String(errors.name)}</Text>}
+                  {isSignUp && 'name' in errors && <ErrorMessage error={errors.name as string} />}
                 </View>
               )}
               
@@ -91,7 +98,7 @@ export function LoginForm<T extends SignInFormValues | SignUpFormValues>({
                   onChangeText={handleChange ? handleChange('email') : undefined}
                   onBlur={handleBlur ? handleBlur('email') : undefined}
                 />
-                {errors.email && <Text className="text-red-500">{String(errors.email)}</Text>}
+                {'email' in errors && <ErrorMessage error={errors.email as string} />}
               </View>
               
               <View className="grid gap-2">
@@ -113,7 +120,7 @@ export function LoginForm<T extends SignInFormValues | SignUpFormValues>({
                   onChangeText={handleChange ? handleChange('password') : undefined}
                   onBlur={handleBlur ? handleBlur('password') : undefined}
                 />
-                {errors.password && <Text className="text-red-500">{String(errors.password)}</Text>}
+                {'password' in errors && <ErrorMessage error={errors.password as string} />}
               </View>
               
               <Button 
