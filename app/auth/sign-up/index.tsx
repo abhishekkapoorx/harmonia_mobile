@@ -1,12 +1,18 @@
 import { BackButtonBar } from "@/components/BackButtonBar";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/auth/InputAuth";
+import { LoginForm } from "@/components/auth/LoginForm";
 import { useSession } from "@/providers/SessionCtx";
 import { useRouter } from "expo-router";
 import { Formik, FormikValues } from 'formik';
 import React, { useState } from "react";
-import { Alert, Pressable, Text, View } from "react-native";
+import { Alert, View } from "react-native";
 import * as Yup from 'yup';
+
+// Define sign-up form values type
+interface SignUpFormValues {
+  name: string;
+  email: string;
+  password: string;
+}
 
 const SignUpSchema = Yup.object().shape({
     name: Yup.string()
@@ -33,7 +39,7 @@ export default function SignUpScreen() {
         router.replace({ pathname: '/home' });
     }
 
-    const handleSignUp = async (values: FormikValues) => {
+    const handleSignUp = async (values: SignUpFormValues, { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }) => {
         setIsDisabled(true);
 
         try {
@@ -43,66 +49,27 @@ export default function SignUpScreen() {
             router.replace({ pathname: '/home' });
         } catch (error: any) {
             Alert.alert('Error', error?.response?.msg || 'Sign up failed. Please try again.');
+        } finally {
+            setIsDisabled(false);
+            setSubmitting(false);
         }
-        setIsDisabled(false);
     }
 
     return (
-        <View className="flex-1 bg-c3 py-8 px-4">
+        <View className="flex-1 bg-c3 px-4 py-4">
             <BackButtonBar text="Sign Up" />
-            <Formik
+            <Formik<SignUpFormValues>
                 initialValues={{ name: '', email: '', password: '' }}
-                onSubmit={values => handleSignUp(values)}
+                onSubmit={handleSignUp}
                 validationSchema={SignUpSchema}
             >
-                {({ handleChange, handleBlur, handleSubmit, values, errors, isSubmitting, isValid }) => (
-                    <>
-                        <View className="space-y-4 mt-10 gap-y-4">
-                            <Input 
-                                label="Name" 
-                                value={values.name} 
-                                setVal={handleChange('name')} 
-                                className="mb-8" 
-                                error={errors.name} 
-                            />
-                            <Input 
-                                label="Email" 
-                                value={values.email} 
-                                setVal={handleChange('email')} 
-                                className="mb-8" 
-                                error={errors.email} 
-                            />
-                            <Input 
-                                label="Password" 
-                                value={values.password} 
-                                setVal={handleChange('password')} 
-                                className="mb-8" 
-                                error={errors.password} 
-                            />
-                        </View>
-
-                        <Button 
-                            disabled={!isValid} 
-                            loading={isSubmitting} 
-                            onPressh={handleSubmit} 
-                            classNames={`bg-c6 mt-20 ${!isValid ? "opacity-70" : ""}`} 
-                            textClasses={`text-c1 text-xl ${!isValid ? "opacity-70" : ""}`} 
-                            label="Sign Up" 
-                        />
-                    </>
+                {(formikProps) => (
+                    <LoginForm<SignUpFormValues>
+                        formik={formikProps}
+                        formType="signUp"
+                    />
                 )}
             </Formik>
-            <Button onPressh={() => { }} classNames="bg-c3 mt-8" textClasses="text-xl font-semibold" label="Sign Up with Google" />
-
-            {/* Already have an account? */}
-            <View className="text-center text-gray-600 mt-6 flex flex-row items-center justify-center font-questrial">
-                <Text className="font-questrial">Already have an account?{" "}</Text>
-                <Pressable onPress={() => router.push("/auth/sign-in")} className="font-semibold text-black flex justify-center items-center">
-                    <Text className="flex justify-center items-center font-questrial">
-                        Sign In
-                    </Text>
-                </Pressable>
-            </View>
         </View>
     );
 }
