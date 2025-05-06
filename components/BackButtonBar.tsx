@@ -13,7 +13,7 @@ export const BackButtonBar = ({text}: {text: string}) => {
     return (
         <TouchableOpacity onPress={() => router.back()} className="py-8 flex flex-row justify-start items-center">
             <Ionicons name="chevron-back" size={24} color={isDarkColorScheme ? "white" : "black"} className="mr-5 mt-2" />
-            <Text className="text-2xl mt-2 flex items-center justify-center font-bold text-black dark:text-white" >{text}</Text>
+            <Text className="text-2xl mt-2 flex items-center justify-center font-bold" >{text}</Text>
         </TouchableOpacity>
 
     )
