@@ -1,11 +1,13 @@
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, FlatList } from "react-native"
+import { View, SafeAreaView, FlatList, TouchableOpacity } from "react-native"
 import ProfileNavbar from "@/components/ProfileNavbar"
 import { BackButtonBar } from "@/components/BackButtonBar"
 import { useSession } from "@/providers/SessionCtx"
 import { Ionicons } from "@expo/vector-icons"
 import { useRouter } from "expo-router"
-import { color } from "@/constants/color"
-
+import { Card, CardHeader, CardContent } from '~/components/ui/card'
+import { Avatar, AvatarFallback } from '~/components/ui/avatar'
+import { Text } from '~/components/ui/text'
+import { Button } from '~/components/ui/button'
 
 const Profile = () => {
     const { userData, signOut } = useSession();
@@ -27,54 +29,53 @@ const Profile = () => {
             icon: 'settings-outline',
             route: '/auth/profile/settings'
         },
-
     ]
 
-
     return (
-        <SafeAreaView className="flex-1 bg-c3 py-8 px-4">
+        <SafeAreaView className="flex-1 bg-background py-8 px-4">
             <BackButtonBar text="Profile" />
             <FlatList
                 data={profileCardData}
                 ListHeaderComponent={() => (
-                    <View className="bg-c6 elevation rounded-xl p-4 mb-4 shadow-sm flex items-center justify-center h-32">
-                        <View className="flex-row items-center">
-                            <View className="w-16 h-16 rounded-full bg-c3 mr-4 items-center justify-center">
-                                <Text className="text-c6 text-3xl font-questrial">
-                                    {userData?.name?.[0]?.toUpperCase()}
-                                </Text>
-                            </View>
+                    <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm items-center justify-center">
+                        <CardHeader className="flex-row items-center gap-4">
+                            <Avatar alt={userData?.name || ''} className="h-16 w-16 border-2 border-accent">
+                                <AvatarFallback>
+                                    <Text className="text-3xl font-bold text-accent-foreground">
+                                        {userData?.name?.[0]?.toUpperCase()}
+                                    </Text>
+                                </AvatarFallback>
+                            </Avatar>
                             <View>
-                                <Text className="text-xl font-questrial text-c1">{userData?.name.toUpperCase()}</Text>
-                                <Text className="text-c2 font-questrial">{userData?.email}</Text>
+                                <Text className="text-xl font-semibold text-card-foreground">{userData?.name?.toUpperCase()}</Text>
+                                <Text className="text-muted-foreground">{userData?.email}</Text>
                             </View>
-                        </View>
-                    </View>
+                        </CardHeader>
+                    </Card>
                 )}
-
-
                 ListFooterComponent={() => (
-                    <TouchableOpacity
-                        className="bg-red-100 rounded-xl p-4 mb-4 shadow-sm flex-row items-center justify-center mt-4"
+                    <Button
+                        variant="destructive"
+                        className="rounded-xl p-4 mb-4 flex-row items-center justify-center mt-4"
                         onPress={handleLogout}
                     >
-                        <Ionicons name="log-out-outline" size={24} color="#EF4444" />
-                        <Text className="ml-3 text-lg text-red-500 font-semibold">Logout</Text>
-                    </TouchableOpacity>
+                        <Ionicons name="log-out-outline" size={24} color="#fff" />
+                        <Text className="ml-3 text-lg text-destructive-foreground font-semibold">Logout</Text>
+                    </Button>
                 )}
-
-
-                renderItem={({item, index}) => (
+                renderItem={({item}) => (
                     <TouchableOpacity
-                        className="bg-c4 rounded-xl p-4 mb-4 shadow-sm flex-row items-center justify-between"
+                        className="mb-4"
                         onPress={() => router.push(item.route as any)}
                         activeOpacity={0.7}
                     >
-                        <View className="flex-row items-center">
-                            <Ionicons name={item.icon as any} size={24} color={color.c6} />
-                            <Text className="ml-3 text-lg text-gray-800">{item.title}</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={24} color={color.c6} />
+                        <Card className="bg-card rounded-xl p-4 shadow-sm flex-row items-center justify-between">
+                            <View className="flex-row items-center">
+                                <Ionicons name={item.icon as any} size={24} color="hsl(var(--accent))" />
+                                <Text className="ml-3 text-lg text-card-foreground">{item.title}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={24} color="hsl(var(--muted-foreground))" />
+                        </Card>
                     </TouchableOpacity>
                 )}
             />
