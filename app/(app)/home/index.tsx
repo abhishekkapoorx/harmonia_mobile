@@ -7,7 +7,12 @@ import { AxiosError } from 'axios'
 import { useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React, { useEffect } from 'react'
-import { Alert, FlatList, Image, ImageBackground, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, FlatList, Image, ImageBackground, SafeAreaView, ScrollView, View } from 'react-native'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '~/components/ui/card'
+import { Avatar, AvatarImage, AvatarFallback } from '~/components/ui/avatar'
+import { Text } from '~/components/ui/text'
+import { Button } from '~/components/ui/button'
+import { NAV_THEME } from '@/lib/constants'
 
 const HomePage = () => {
     const router = useRouter();
@@ -37,7 +42,7 @@ const HomePage = () => {
         {
             title: "Chat",
             description: "No More Guesswork—Ask Away!",
-            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c1} />,
+            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={NAV_THEME.light.primary} />,
             bg: "bg-c6",
             color: "text-c1",
             link: "/chat"
@@ -45,7 +50,7 @@ const HomePage = () => {
         {
             title: "Meal Planner",
             description: "Plan meal like a nutritionist!",
-            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
+            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={NAV_THEME.light.primary} />,
             bg: "bg-c2",
             color: "text-c6",
             link: "/meal"
@@ -54,7 +59,7 @@ const HomePage = () => {
         {
             title: "Track Health",
             description: "Your Body. Your Control.",
-            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c1} />,
+            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={NAV_THEME.light.primary} />,
             bg: "bg-c6",
             color: "text-c1",
             link: "/track"
@@ -62,7 +67,7 @@ const HomePage = () => {
         {
             title: "Recommended Products",
             description: "Products tailored for just for your health.",
-            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={color.c6} />,
+            icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={NAV_THEME.light.primary} />,
             bg: "bg-c2",
             color: "text-c6"
         },
@@ -70,78 +75,96 @@ const HomePage = () => {
 
 
     return (
-        <SafeAreaView className="flex-1 bg-c3 items-center gap-5 bg">
-            <ImageBackground source={require("@/assets/images/Group 25.png")} style={{ width: '100%', height: '100%' }} >
-                <StatusBar style="dark" />
+        <SafeAreaView className="flex-1 bg-background items-center">
+            {/* <ImageBackground source={require("@/assets/images/Group 25.png")} style={{ width: '100%', height: '100%' }}> */}
+                <StatusBar style="auto" />
                 <ProfileNavbar />
-                {/* <ScrollView className='p-4' contentContainerStyle={{ flexGrow: 1 }}>
-
-                    <HomeUpper /> */}
-
-
-                <View className='my-5 flex-1'>
-                    <FlatList
-                        data={flatListData}
-                        keyExtractor={(item, index) => item.title}
-                        nestedScrollEnabled={true}
-                        ListHeaderComponent={
-                            <View className='flex w-full mb-10'>
-                                <View className='w-full flex justify-start items-start'>
-                                    <Text className='text-2xl font-questrial'>Welcome</Text>
-                                </View>
-
-                                <View className="flex-1 justify-center items-center mt-10">
-                                    <View className="w-full max-w-md gap-2">
-                                        {/* Row 1 */}
-                                        <View className="flex-row justify-between items-center gap-2">
-                                            <View className="flex-1 bg-c5 border-c6 border-2 rounded-tr-full p-3 rounded-tl-2xl  rounded-bl-none rounded-br-none m-1 h-24 justify-center items-start">
-                                                <Text className="text-black text-md font-questrial">
-                                                    AI that cares your wellness.
-                                                </Text>
-                                            </View>
-                                            <View className="w-24 h-24 rounded-tr-full overflow-visible border-2 bg-c4  border-c6 justify-end items-center bg-contain">
-                                                <Image
-                                                    source={require("@/assets/images/homeImg.png")}
-                                                    className="w-full h-full"
-                                                    style={{ width: '100%', height: '100%' }}
-                                                    resizeMode="cover"
-                                                />
-                                            </View>
-                                        </View>
-
-                                        {/* Row 2 */}
-                                        <View className="flex-row justify-between items-center">
-                                            <View className="w-24 h-24 bg-c2 border-2 border-c6 rounded-br-full flex items-start justify-center m-1 p-4">
-                                                <Ionicons name="compass-outline" size={24} color="black" />
-                                            </View>
-                                            <View className="flex-1 bg-c1 border-c6 border-2 p-4 rounded-tl-full m-1 justify-center items-end h-24">
-                                                <Text className="text-black text-right font-questrial text-md">
-                                                    Get the answers of your each question.
-                                                </Text>
-                                            </View>
-                                        </View>
+                <View className="flex-1 w-full px-4 py-6 gap-6 items-center">
+                    {/* Personal Medical History Card */}
+                    <Card className="w-full max-w-xl rounded-3xl bg-card border border-border shadow-lg p-0 mb-4">
+                        <CardHeader className="flex-row items-center gap-4 p-6 pb-2">
+                            <Avatar alt="Helen Murfie" className="h-20 w-20 border-4 border-accent">
+                                <AvatarImage source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} />
+                                <AvatarFallback>
+                                    <Text>HM</Text>
+                                </AvatarFallback>
+                            </Avatar>
+                            <View className="flex-1 ml-2">
+                                <CardTitle className="text-2xl font-bold text-card-foreground">Helen Murfie</CardTitle>
+                                <View className="flex-row gap-4 mt-2">
+                                    <View>
+                                        <Text className="text-xs text-muted-foreground">Gender</Text>
+                                        <Text className="text-base font-semibold text-card-foreground">Female</Text>
+                                    </View>
+                                    <View>
+                                        <Text className="text-xs text-muted-foreground">Age</Text>
+                                        <Text className="text-base font-semibold text-card-foreground">29 yrs</Text>
+                                    </View>
+                                    <View>
+                                        <Text className="text-xs text-muted-foreground">Weight</Text>
+                                        <Text className="text-base font-semibold text-card-foreground">50 kg</Text>
                                     </View>
                                 </View>
                             </View>
-                        }
-                        className='w-full flex-1 px-4'
-                        renderItem={({ item }) => (
-                            <TouchableOpacity onPress={() => router.push(item.link? item.link as any : "/home")} activeOpacity={0.8} key={item.title} className={`flex-1 flex-row justify-start items-center elevation ${item.bg} w-full p-4 rounded-2xl m-2 border-c6 border-2 gap-2 h-32`}>
-                                <View className='mr-5'>
-                                    {item.icon}
+                            <Button variant="secondary" size="icon" className="ml-2 bg-accent">
+                                <Text className="text-lg text-card-foreground">›</Text>
+                            </Button>
+                        </CardHeader>
+                    </Card>
+                    {/* Recent Visits Card */}
+                    <Card className="w-full max-w-xl rounded-2xl bg-card border border-border shadow p-0 mb-4">
+                        <CardHeader className="flex-row items-center justify-between p-6 pb-2">
+                            <CardTitle className="text-lg font-semibold text-card-foreground">Recent visits</CardTitle>
+                            <Button variant="ghost" size="sm">
+                                <Text className="text-xs text-card-foreground">See all</Text>
+                            </Button>
+                        </CardHeader>
+                        <CardContent className="flex-row items-center gap-4 p-6 pt-2">
+                            <View className="flex-1">
+                                <Text className="text-base font-semibold text-card-foreground">Botulinum treatments</Text>
+                                <Text className="text-md text-muted-foreground mt-1">Date: <Text className="text-card-foreground">29 Sep 2023</Text></Text>
+                                <Text className="text-md text-muted-foreground">Medication: <Text className="text-card-foreground">Miotox</Text></Text>
+                                <Text className="text-md text-muted-foreground">Injecting units: <Text className="text-card-foreground">25</Text></Text>
+                            </View>
+                            <View className="items-center">
+                                <Avatar alt="Amanda Zendinsky" className="h-12 w-12 border-2 border-accent">
+                                    <AvatarImage source={{ uri: 'https://randomuser.me/api/portraits/women/65.jpg' }} />
+                                    <AvatarFallback>
+                                        <Text>AZ</Text>
+                                    </AvatarFallback>
+                                </Avatar>
+                                <Text className="text-xs font-semibold text-card-foreground mt-1">Amanda Zendinsky</Text>
+                                <Text className="text-[10px] text-muted-foreground">Dermatologist</Text>
+                                <View className="flex-row items-center gap-1 mt-1">
+                                    <Text className="text-[10px] text-yellow-400">★</Text>
+                                    <Text className="text-[10px] text-card-foreground">5.0</Text>
+                                    <Text className="text-[10px] text-muted-foreground">(126)</Text>
                                 </View>
-                                <View>
-                                    <Text className={`text-lg font-anonymousPro ${item.color}`}>{item.title}</Text>
-                                    <Text className={`text-md font-anonymousPro ${item.color}`}>{item.description}</Text>
+                            </View>
+                        </CardContent>
+                    </Card>
+                    {/* Feature Cards Grid (2 columns, flexbox) */}
+                    <View className="w-full max-w-xl flex-row flex-wrap justify-between mt-2">
+                        {flatListData.map((item, idx) => (
+                            <Card
+                                key={item.title}
+                                className={`basis-[48%] m-1 flex-row items-center p-4 gap-4 rounded-2xl shadow-sm bg-card border border-border`}
+                            >
+                                <View className="mr-2">{item.icon}</View>
+                                <View className="flex-1">
+                                    <CardTitle className={`text-base font-semibold text-card-foreground`}>{item.title}</CardTitle>
+                                    <CardDescription className={`text-xs text-muted-foreground`}>{item.description}</CardDescription>
+                                    {item.link && (
+                                        <Button className="mt-2 h-8 px-3 py-1" size="sm" onPress={() => router.push(item.link as any)}>
+                                            <Text className="text-xs">Open</Text>
+                                        </Button>
+                                    )}
                                 </View>
-                            </TouchableOpacity>
-                        )}
-                    />
+                            </Card>
+                        ))}
+                    </View>
                 </View>
-
-                {/* </ScrollView> */}
-
-            </ImageBackground>
+            {/* </ImageBackground> */}
         </SafeAreaView>
     )
 }
