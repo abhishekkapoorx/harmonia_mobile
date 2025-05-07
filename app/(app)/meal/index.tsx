@@ -4,6 +4,7 @@ import { useSession } from '@/providers/SessionCtx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import ProfileNavbar from '@/components/ProfileNavbar';
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '~/components/ui/card';
 
 // Define meal type
 type MealType = 'Breakfast' | 'Lunch' | 'Dinner';
@@ -179,10 +180,8 @@ const MealPlannerPage = () => {
       source={require('@/assets/images/Group 25.png')} 
       className="flex-1"
     >
-      <SafeAreaView className="flex-1">
-        {/* Use ProfileNavbar component */}
+      <SafeAreaView className="flex-1 bg-background">
         <ProfileNavbar />
-        
         <View className="flex px-5">
           {/* Day selector as horizontal tabs */}
           <ScrollView 
@@ -194,11 +193,11 @@ const MealPlannerPage = () => {
               {daysOfWeek.map((day) => (
                 <TouchableOpacity
                   key={day}
-                  className={`px-4 py-2 mx-1 rounded-full ${selectedDay === day ? 'bg-gray-500' : 'bg-white border border-gray-200'}`}
+                  className={`px-4 py-2 mx-1 rounded-full ${selectedDay === day ? 'bg-accent' : 'bg-card border border-border'}`}
                   onPress={() => setSelectedDay(day)}
                 >
                   <Text
-                    className={`text-base font-medium ${selectedDay === day ? 'text-white' : 'text-gray-800'}`}
+                    className={`text-base font-semibold ${selectedDay === day ? 'text-accent-foreground' : 'text-card-foreground'}`}
                   >
                     {day}
                   </Text>
@@ -206,58 +205,60 @@ const MealPlannerPage = () => {
               ))}
             </View>
           </ScrollView>
-
           {/* All meals in a single view */}
           <ScrollView className="flex mb-5">
             {/* Breakfast */}
-            <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-lg font-bold text-gray-800">Breakfast</Text>
-                <Text className="text-base font-medium text-gray-600">{extractCalories(currentDayMeals.Breakfast.nutritional_value)} Kcal</Text>
-              </View>
-              <Text className="text-base text-gray-800 mb-2">{currentDayMeals.Breakfast.meal}</Text>
-              <Text className="text-sm text-gray-500">{currentDayMeals.Breakfast.nutritional_value}</Text>
-            </View>
-
+            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
+              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
+                <CardTitle className="text-lg font-bold text-card-foreground">Breakfast</CardTitle>
+                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Breakfast.nutritional_value)} Kcal</Text>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Breakfast.meal}</Text>
+                <Text className="text-sm text-muted-foreground">{currentDayMeals.Breakfast.nutritional_value}</Text>
+              </CardContent>
+            </Card>
             {/* Lunch */}
-            <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-lg font-bold text-gray-800">Lunch</Text>
-                <Text className="text-base font-medium text-gray-600">{extractCalories(currentDayMeals.Lunch.nutritional_value)} Kcal</Text>
-              </View>
-              <Text className="text-base text-gray-800 mb-2">{currentDayMeals.Lunch.meal}</Text>
-              <Text className="text-sm text-gray-500">{currentDayMeals.Lunch.nutritional_value}</Text>
-            </View>
-
+            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
+              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
+                <CardTitle className="text-lg font-bold text-card-foreground">Lunch</CardTitle>
+                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Lunch.nutritional_value)} Kcal</Text>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Lunch.meal}</Text>
+                <Text className="text-sm text-muted-foreground">{currentDayMeals.Lunch.nutritional_value}</Text>
+              </CardContent>
+            </Card>
             {/* Dinner */}
-            <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
-              <View className="flex-row justify-between items-center mb-2">
-                <Text className="text-lg font-bold text-gray-800">Dinner</Text>
-                <Text className="text-base font-medium text-gray-600">{extractCalories(currentDayMeals.Dinner.nutritional_value)} Kcal</Text>
-              </View>
-              <Text className="text-base text-gray-800 mb-2">{currentDayMeals.Dinner.meal}</Text>
-              <Text className="text-sm text-gray-500">{currentDayMeals.Dinner.nutritional_value}</Text>
-            </View>
+            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
+              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
+                <CardTitle className="text-lg font-bold text-card-foreground">Dinner</CardTitle>
+                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Dinner.nutritional_value)} Kcal</Text>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Dinner.meal}</Text>
+                <Text className="text-sm text-muted-foreground">{currentDayMeals.Dinner.nutritional_value}</Text>
+              </CardContent>
+            </Card>
           </ScrollView>
-
           {/* Total calories */}
-          <View className="bg-white rounded-xl p-4 mb-5 shadow-sm">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-lg font-bold text-gray-800">Total Calories</Text>
-              <Text className="text-lg font-bold text-gray-800">{totalCalories} Kcal</Text>
-            </View>
-          </View>
-
+          <Card className="bg-card rounded-2xl p-4 mb-5 shadow-sm">
+            <CardHeader className="flex-row justify-between items-center p-0">
+              <CardTitle className="text-lg font-bold text-card-foreground">Total Calories</CardTitle>
+              <Text className="text-lg font-bold text-card-foreground">{totalCalories} Kcal</Text>
+            </CardHeader>
+          </Card>
           {/* Search bar */}
           <View className="flex-row mb-5 items-center">
             <TextInput
-              className="flex-1 bg-white py-2.5 px-5 rounded-full mr-2.5 border border-gray-200"
+              className="flex-1 bg-card py-2.5 px-5 rounded-full mr-2.5 border border-border text-foreground"
               placeholder="Type your query here..."
+              placeholderTextColor="hsl(var(--muted-foreground))"
               value={query}
               onChangeText={setQuery}
             />
-            <TouchableOpacity className="w-12 h-12 rounded-full bg-gray-500 justify-center items-center">
-              <Ionicons name="arrow-up" size={24} color="#fff" />
+            <TouchableOpacity className="w-12 h-12 rounded-full bg-accent justify-center items-center">
+              <Ionicons name="arrow-up" size={24} color="hsl(var(--accent-foreground))" />
             </TouchableOpacity>
           </View>
         </View>

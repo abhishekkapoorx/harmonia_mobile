@@ -8,6 +8,13 @@ import React, { useState, useCallback } from 'react'
 import { FlatList, ImageBackground, SafeAreaView, Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator } from 'react-native'
 import uuid from 'react-native-uuid';
 import Markdown from 'react-native-markdown-display';
+import { Card, CardHeader, CardContent, CardFooter } from '~/components/ui/card';
+import { Button } from '~/components/ui/button';
+import { NAV_THEME } from '@/lib/constants';
+import { useColorScheme } from '~/lib/useColorScheme';
+import { Textarea } from '~/components/ui/textarea';
+import { cn } from '@/lib/utils copy';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 // Utility function to safely handle markdown content
 const sanitizeMarkdown = (content: string): string => {
@@ -29,10 +36,12 @@ interface ChatDataInterface {
 }
 
 const HomePage = () => {
-
+    const { isDarkColorScheme } = useColorScheme();
+    const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
     const [chatInput, setChatInput] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const flatListRef = React.useRef<FlatList>(null);
+    const [inputHeight, setInputHeight] = useState(48);
 
     const [chatData, setChatData] = useState<ChatDataInterface[]>([
         {
@@ -144,76 +153,90 @@ const HomePage = () => {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-c3 items-center gap-5">
-            <ImageBackground source={require("@/assets/images/Group 25.png")} style={{ width: '100%', height: '100%' }} >
-                <StatusBar style="dark" />
-                <ProfileNavbar />
-
-
-                <FlatList
-                    ref={flatListRef}
-                    data={chatData}
-                    keyExtractor={(item) => item.id.toString()}
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={true}
-                    initialNumToRender={chatData.length}
-                    maxToRenderPerBatch={10}
-                    windowSize={10}
-                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                    renderItem={({ item }) => (
-                        <View className={`w-full flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
-                            <View className={`flex justify-start items-start w-3/4 rounded-xl ${item.user === "AI" ? "bg-c6 border-grayD" : "bg-c2 border-grayD"} m-2 border-2 py-4 px-6`}>
-                                {item.user === "AI" && item.isLoading ? (
-                                    <View className="flex-row items-center">
-                                        <Text className="text-c1 text-lg font-anonymousPro mr-2">Thinking</Text>
-                                        <ActivityIndicator size="small" color={color.c1} />
-                                    </View>
-                                ) : item.user === "AI" ? (
-                                    <ScrollView>
-                                        <Markdown
-                                        style={{
-                                          body: { color: color.c3, fontFamily: 'AnonymousPro', fontSize: 18 },
-                                          heading1: { color: color.c3, fontFamily: 'AnonymousPro', fontSize: 24, fontWeight: 'bold' },
-                                          heading2: { color: color.c3, fontFamily: 'AnonymousPro', fontSize: 22, fontWeight: 'bold' },
-                                          heading3: { color: color.c3, fontFamily: 'AnonymousPro', fontSize: 20, fontWeight: 'bold' },
-                                          link: { color: '#0000EE', textDecorationLine: 'underline' },
-                                          list_item: { color: color.c3, fontFamily: 'AnonymousPro', fontSize: 18 },
-                                          code_block: { backgroundColor: '#f0f0f0', padding: 10, borderRadius: 5, fontFamily: 'monospace' },
-                                          code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 3, fontFamily: 'monospace' },
-                                          paragraph: { marginBottom: 10, marginTop: 0 }
-                                        }}
-                                        >
-                                            {sanitizeMarkdown(item.message || '')}
-                                        </Markdown>
-                                    </ScrollView>
-                                ) : (
-                                    <Text className={`${item.user === "AI" ? "text-c1" : "text-c6"} text-lg font-anonymousPro`}>
-                                        {item.message}
+        <SafeAreaView className="flex flex-1 bg-background w-full items-center gap-5">
+            <StatusBar style="auto" />
+            <ProfileNavbar />
+            <FlatList
+                ref={flatListRef}
+                data={chatData}
+                keyExtractor={(item) => item.id.toString()}
+                nestedScrollEnabled={true}
+                showsVerticalScrollIndicator={true}
+                initialNumToRender={chatData.length}
+                maxToRenderPerBatch={10}
+                windowSize={10}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                contentContainerStyle={{ paddingBottom: 112 }}
+                renderItem={({ item }) => (
+                    <View className={`w-full h-fit flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
+                        <Animated.View entering={FadeIn} exiting={FadeOut}>
+                            <Card className={cn("my-2 w-11/12", item.user === "AI" ? "bg-background" : "bg-popover")}>
+                                <CardHeader className="pb-2">
+                                    <Text className="text-base font-semibold" style={{ color: palette.primary }}>
+                                        {item.user === "AI" ? "AI" : "You"}
                                     </Text>
-                                )}
-                            </View>
-                        </View>
-                    )}
-                />
-                <View className='w-full flex flex-row justify-between items-center p-4'>
-                    <View className='w-80 flex justify-center items-start rounded-full bg-c3 border-2 border-c6 h-16 max-h-32'>
-                        <TextInput placeholder="Type a message" className='p-2 text-grayD text-lg font-anonymousPro ms-2 w-full max-h-32' value={chatInput} onChangeText={text => setChatInput(text)} />
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                    {item.user === "AI" && item.isLoading ? (
+                                        <CardFooter className="pl-0 pt-2">
+                                            <View className="flex-row items-center">
+                                                <Text className="text-lg font-anonymousPro mr-2" style={{ color: palette.text }}>Thinking</Text>
+                                                <ActivityIndicator size="small" color={palette.text} />
+                                            </View>
+                                        </CardFooter>
+                                    ) : item.user === "AI" ? (
+                                        <ScrollView>
+                                            <Markdown
+                                                style={{
+                                                    body: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 18 },
+                                                    heading1: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 24, fontWeight: 'bold' },
+                                                    heading2: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 22, fontWeight: 'bold' },
+                                                    heading3: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 20, fontWeight: 'bold' },
+                                                    link: { color: palette.primary, textDecorationLine: 'underline' },
+                                                    list_item: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 18 },
+                                                    code_block: { backgroundColor: palette.card, padding: 10, borderRadius: 5, fontFamily: 'monospace' },
+                                                    code_inline: { backgroundColor: palette.card, padding: 2, borderRadius: 3, fontFamily: 'monospace' },
+                                                    paragraph: { marginBottom: 10, marginTop: 0 }
+                                                }}
+                                            >
+                                                {sanitizeMarkdown(item.message || '')}
+                                            </Markdown>
+                                        </ScrollView>
+                                    ) : (
+                                        <Text className={`text-lg`} style={{ color: palette.text }}>
+                                            {item.message}
+                                        </Text>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </Animated.View>
                     </View>
-                    <TouchableOpacity
-                        onPress={handleChatSubmit}
-                        activeOpacity={0.8}
-                        disabled={isSubmitting || chatInput === ""}
-                        className={`w-16 h-16 rounded-full ${isSubmitting ? 'bg-gray-400' : 'bg-c6'} border-c1 flex justify-center items-center`}
-                    >
-                        {isSubmitting ? (
-                            <ActivityIndicator size="small" color={color.c1} />
-                        ) : (
-                            <Ionicons name="arrow-up-outline" size={24} color={color.c1} />
-                        )}
-                    </TouchableOpacity>
-                </View>
-            </ImageBackground>
+                )}
+            />
+            <View className='w-full flex-row justify-between items-center p-4 h-fit'>
+                <Textarea
+                    placeholder="Type a message"
+                    className="flex-1 bg-background text-foreground mr-2"
+                    placeholderClassName="text-muted-foreground"
+                    value={chatInput}
+                    onChangeText={(text: string) => setChatInput(text)}
+                    numberOfLines={3}
+                    multiline
+                />
+                <Button
+                    onPress={handleChatSubmit}
+                    disabled={isSubmitting || chatInput === ""}
+                    className="w-16 h-16 rounded-full flex justify-center items-center"
+                    style={{ backgroundColor: palette.primary }}
+                >
+                    {isSubmitting ? (
+                        <ActivityIndicator size="small" color={palette.background} />
+                    ) : (
+                        <Ionicons name="arrow-up-outline" size={24} color={palette.background} />
+                    )}
+                </Button>
+            </View>
         </SafeAreaView>
     )
 }
