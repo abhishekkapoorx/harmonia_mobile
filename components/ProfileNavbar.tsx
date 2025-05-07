@@ -1,7 +1,8 @@
 import React from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Image, Pressable, View } from 'react-native'
 import { useSession } from '@/providers/SessionCtx';
 import { router } from 'expo-router';
+import { Text } from './ui/text';
 
 const ProfileNavbar = () => {
   const { userData } = useSession();
