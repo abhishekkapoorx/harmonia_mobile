@@ -1,13 +1,29 @@
-import { Input } from '@/components/auth/InputAuth';
-import { BackButtonBar } from '@/components/BackButtonBar';
+// NOTE: Make sure you have copied/installed the RNR components (input, button, select, text, view, card) into ~/components/ui/ as per https://rnr-docs.vercel.app/components/
+
 import { StatusBar } from 'expo-status-bar';
-import { View, FlatList, Text, Alert } from 'react-native';
-import SelectPicker from '@/components/SelectPicker';
+import { Alert } from 'react-native';
 import { Formik, FormikValues } from 'formik';
 import * as Yup from 'yup';
-import { Button } from '@/components/Button';
 import { router } from 'expo-router';
 import axiosInstance from '@/http/axiosInstance';
+import { Text } from '~/components/ui/text';
+import { View, ScrollView } from 'react-native';
+import { Card } from '~/components/ui/card';
+import { Input } from '~/components/ui/input';
+import { Button } from '~/components/ui/button';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectItem,
+} from '~/components/ui/select';
+import { BackButtonBar } from '@/components/BackButtonBar';
+import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { Label } from '@/components/ui/label';
 
 // Define question types
 type QuestionType = 'input' | 'select';
@@ -328,7 +344,6 @@ const Questioneer = () => {
             }
         } catch (error: any) {
             Alert.alert('Error', error?.response?.data?.msg || 'Failed to submit form. Please try again.');
-            // console.log("Error:", error);
         } finally {
             setSubmitting(false);
         }
@@ -338,25 +353,46 @@ const Questioneer = () => {
         if (item.type === 'input') {
             return (
                 <View className="mb-4">
+                    <Label className="mb-1 font-medium">{item.label}</Label>
                     <Input
-                        label={item.label}
                         value={values[item.id]}
-                        setVal={(value) => setFieldValue(item.id, value)}
-                        className="border-b-2"
-                        error={touched[item.id] && errors[item.id]}
+                        onChangeText={(value: string) => setFieldValue(item.id, value)}
                     />
+                    {touched[item.id] && errors[item.id] && (
+                        <Text className="text-red-500 text-sm mt-1">{errors[item.id]}</Text>
+                    )}
                 </View>
             );
         }
-
         return (
             <View className="mb-4">
-                <SelectPicker
-                    title={item.label}
-                    data={item.options || []}
-                    selectedValue={values[item.id]}
-                    setSelectedValue={(value) => setFieldValue(item.id, value)}
-                />
+                <Label className="mb-1 font-medium">{item.label}</Label>
+                <Select
+                    value={item.options?.find((opt: QuestionOption) => opt.value === values[item.id])}
+                    onValueChange={option => setFieldValue(item.id, option?.value)}
+                >
+                    <SelectTrigger>
+                        <SelectValue placeholder={`Select ${item.label}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectLabel>{item.label}</SelectLabel>
+                            {(item.options || []).map((opt: QuestionOption) => (
+                                <SelectItem
+                                    key={opt.value}
+                                    value={opt.value}
+                                    label={opt.label}
+                                    className="flex-row justify-between items-center"
+                                >
+                                    {opt.label}
+                                    {values[item.id] === opt.value && (
+                                        <Ionicons name="checkmark" size={18} color="#22c55e" style={{ marginLeft: 8 }} />
+                                    )}
+                                </SelectItem>
+                            ))}
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
                 {touched[item.id] && errors[item.id] && (
                     <Text className="text-red-500 text-sm mt-1">{errors[item.id]}</Text>
                 )}
@@ -365,7 +401,7 @@ const Questioneer = () => {
     };
 
     return (
-        <View className="flex-1 bg-gray-100 px-6 py-10">
+        <View className="flex-1 px-6 py-10">
             <StatusBar style="dark" />
             <BackButtonBar text="User Details" />
             <Formik
@@ -375,29 +411,30 @@ const Questioneer = () => {
             >
                 {({ values, setFieldValue, handleSubmit, errors, touched, isSubmitting, isValid }) => (
                     <View className="flex-1">
-                        <FlatList
-                            data={questions}
-                            renderItem={({ item }) => renderQuestion({ 
-                                item, 
-                                values, 
-                                setFieldValue, 
-                                errors, 
-                                touched 
-                            })}
-                            keyExtractor={item => item.id}
-                            contentContainerClassName="gap-8"
-                            className="py-4"
-                            showsVerticalScrollIndicator={false}
-                        />
-                        <View className="mt-4 mb-8">
+                        <ScrollView className="flex-1">
+                            <Card className="p-4">
+                                {questions.map((item) => (
+                                    <React.Fragment key={item.id}>
+                                        {renderQuestion({ 
+                                            item, 
+                                            values, 
+                                            setFieldValue, 
+                                            errors, 
+                                            touched 
+                                        })}
+                                    </React.Fragment>
+                                ))}
+                            </Card>
+                        </ScrollView>
+                        <View className="mt-4 mb-2">
                             <Button
                                 disabled={!isValid || isSubmitting}
-                                loading={isSubmitting}
-                                onPressh={handleSubmit}
-                                classNames={`bg-c6 ${(!isValid || isSubmitting) ? "opacity-70" : ""}`}
-                                textClasses={`text-c1 text-xl ${(!isValid || isSubmitting) ? "opacity-70" : ""}`}
-                                label="Submit Health Details"
-                            />
+                                onPress={() => handleSubmit()}
+                                
+
+                            >
+                                <Text>Submit Health Details</Text>
+                            </Button>
                         </View>
                     </View>
                 )}

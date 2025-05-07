@@ -1,45 +1,11 @@
 import { SessionProvider } from "@/providers/SessionCtx";
-// import { useFonts } from "expo-font";
-// import { SplashScreen, Stack } from "expo-router";
-// import { StatusBar } from "expo-status-bar";
-// import React from "react";
-// import { ActivityIndicator, SafeAreaView, useColorScheme } from "react-native";
-// import "../global.css";
-
-// SplashScreen.preventAutoHideAsync();
-
-
-// export default function RootLayout() {
-//   const [fontsLoaded] = useFonts({
-//     "questrial": require("../assets/fonts/Questrial-Regular.ttf"),
-//     "anonymousPro": require("../assets/fonts/AnonymousPro-Regular.ttf"),
-//   });
-//   const colorScheme = useColorScheme();
-
-//   if (!fontsLoaded) {
-//     return <ActivityIndicator />;
-//   } else {
-//     SplashScreen.hideAsync();
-//   }
-//   return (
-//     <SessionProvider>
-//         <Stack screenOptions={{ headerShown: false }}>
-//             <Stack.Screen name="index" />
-//             <Stack.Screen name="auth" />
-//         </Stack>
-//     </SessionProvider>
-//   );
-// }
-
-
-
-import '~/global.css';
-
-import { Theme, ThemeProvider, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, Theme, ThemeProvider } from '@react-navigation/native';
+import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
 import { Platform } from 'react-native';
+import '~/global.css';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 
@@ -54,7 +20,7 @@ const DARK_THEME: Theme = {
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary
 } from 'expo-router';
 
 export default function RootLayout() {
@@ -80,15 +46,19 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-      <SessionProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="auth" />
-        </Stack>
-      </SessionProvider>
-    </ThemeProvider>
+    <>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+        <SessionProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="auth" />
+          </Stack>
+        </SessionProvider>
+      </ThemeProvider>
+      <PortalHost />
+    </>
+
   );
 }
 
