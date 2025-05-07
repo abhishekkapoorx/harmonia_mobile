@@ -167,13 +167,25 @@ const HomePage = () => {
                 windowSize={10}
                 onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                 onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                contentContainerStyle={{ paddingBottom: 112 }}
+                contentContainerStyle={{ paddingBottom: 112, paddingTop: 16 }}
                 renderItem={({ item }) => (
-                    <View className={`w-full h-fit flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
+                    <View className={`w-full flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
                         <Animated.View entering={FadeIn} exiting={FadeOut}>
-                            <Card className={cn("my-2 w-11/12", item.user === "AI" ? "bg-background" : "bg-popover")}>
+                            <Card
+                                className={cn(
+                                    "my-2 w-11/12",
+                                    item.user === "AI"
+                                        ? "bg-primary/20"
+                                        : "bg-primary/90"
+                                )}
+                            >
                                 <CardHeader className="pb-2">
-                                    <Text className="text-base font-semibold" style={{ color: palette.primary }}>
+                                    <Text
+                                        className={cn(
+                                            "text-base font-semibold",
+                                            item.user === "AI" ? "text-foreground" : "text-primary-foreground"
+                                        )}
+                                    >
                                         {item.user === "AI" ? "AI" : "You"}
                                     </Text>
                                 </CardHeader>
@@ -181,7 +193,9 @@ const HomePage = () => {
                                     {item.user === "AI" && item.isLoading ? (
                                         <CardFooter className="pl-0 pt-2">
                                             <View className="flex-row items-center">
-                                                <Text className="text-lg font-anonymousPro mr-2" style={{ color: palette.text }}>Thinking</Text>
+                                                <Text className="text-lg mr-2 text-primary-foreground">
+                                                    Thinking
+                                                </Text>
                                                 <ActivityIndicator size="small" color={palette.text} />
                                             </View>
                                         </CardFooter>
@@ -189,12 +203,12 @@ const HomePage = () => {
                                         <ScrollView>
                                             <Markdown
                                                 style={{
-                                                    body: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 18 },
-                                                    heading1: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 24, fontWeight: 'bold' },
-                                                    heading2: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 22, fontWeight: 'bold' },
-                                                    heading3: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 20, fontWeight: 'bold' },
-                                                    link: { color: palette.primary, textDecorationLine: 'underline' },
-                                                    list_item: { color: palette.text, fontFamily: 'AnonymousPro', fontSize: 18 },
+                                                    body: { color: palette["foreground"], fontSize: 16 },
+                                                    heading1: { color: palette["foreground"], fontSize: 22, fontWeight: 'bold' },
+                                                    heading2: { color: palette["foreground"], fontSize: 20, fontWeight: 'bold' },
+                                                    heading3: { color: palette["foreground"], fontSize: 18, fontWeight: 'bold' },
+                                                    link: { color: palette["foreground"], textDecorationLine: 'underline' },
+                                                    list_item: { color: palette["foreground"], fontSize: 16 },
                                                     code_block: { backgroundColor: palette.card, padding: 10, borderRadius: 5, fontFamily: 'monospace' },
                                                     code_inline: { backgroundColor: palette.card, padding: 2, borderRadius: 3, fontFamily: 'monospace' },
                                                     paragraph: { marginBottom: 10, marginTop: 0 }
@@ -204,7 +218,7 @@ const HomePage = () => {
                                             </Markdown>
                                         </ScrollView>
                                     ) : (
-                                        <Text className={`text-lg`} style={{ color: palette.text }}>
+                                        <Text className="text-lg text-primary-foreground">
                                             {item.message}
                                         </Text>
                                     )}
