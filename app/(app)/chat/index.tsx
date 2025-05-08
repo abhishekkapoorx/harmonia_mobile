@@ -4,7 +4,7 @@ import axiosInstance from '@/http/axiosInstance';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar'
-import React, { useState, useCallback, useRef, useMemo } from 'react'
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import { FlatList, ImageBackground, SafeAreaView, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Modal, Pressable } from 'react-native'
 import uuid from 'react-native-uuid';
 import Markdown from 'react-native-markdown-display';
@@ -21,6 +21,7 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheetHandleComponent from '@/components/ui/BottomSheetHandleComponent';
 import ChatSheetFooter from '@/components/ui/ChatSheetFooter';
+import { useQuery } from '@tanstack/react-query';
 
 // Utility function to safely handle markdown content
 const sanitizeMarkdown = (content: string): string => {
@@ -41,17 +42,42 @@ interface ChatDataInterface {
     isLoading?: boolean;
 }
 
+interface ChatInterface {
+    created_at: string;
+    id: string;
+    title: string;
+    updated_at: string;
+    user_id: string;
+}
+
+interface ChatResponseInterface {
+    chats: ChatInterface[];
+}
+
+// Function to fetch all chats
+const fetchUserChats = async (): Promise<ChatInterface[]> => {
+    try {
+        const response = await axiosInstance.get<ChatResponseInterface>('/chat/get-chats');
+        return response.data.chats;
+    } catch (error) {
+        console.error('Error fetching chats:', error);
+        throw error;
+    }
+};
+
 // Chat List component for BottomSheet
 const ChatSheetContent = ({ 
   chats, 
   onSelectChat,
   onNewChat, 
-  onClose 
+  onClose,
+  isLoading
 }: { 
-  chats: { id: string; title: string }[];
+  chats: ChatInterface[];
   onSelectChat: (id: string) => void;
   onNewChat: () => void;
   onClose: () => void;
+  isLoading: boolean;
 }) => {
   const { isDarkColorScheme } = useColorScheme();
   const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
@@ -73,7 +99,12 @@ const ChatSheetContent = ({
           </Button>
         </View>
         
-        {chats.length === 0 ? (
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center py-8">
+            <ActivityIndicator size="small" color={palette.foreground} />
+            <Text className="text-muted-foreground text-base mt-2">Loading chats...</Text>
+          </View>
+        ) : chats.length === 0 ? (
           <View className="flex-1 items-center justify-center py-8">
             <Text className="text-muted-foreground text-base">No chats yet</Text>
           </View>
@@ -104,10 +135,18 @@ const HomePage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const flatListRef = React.useRef<FlatList>(null);
     const [inputHeight, setInputHeight] = useState(48);
-    const [allChats, setAllChats] = useState<{ id: string; title: string }[]>([
-        { id: '1', title: 'General' },
-        { id: '2', title: 'Health' },
-    ]);
+    
+    // Use React Query to fetch chats
+    const { 
+        data: chats, 
+        isLoading: isChatsLoading, 
+        isError: isChatsError, 
+        error: chatsError,
+        refetch: refetchChats
+    } = useQuery({
+        queryKey: ['userChats'],
+        queryFn: fetchUserChats,
+    });
 
     const [chatData, setChatData] = useState<ChatDataInterface[]>([
         {
@@ -116,7 +155,7 @@ const HomePage = () => {
             id: uuid.v4()
         },
 
-    ])
+    ]);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
     const snapPoints = useMemo(() => ['50%', '80%'], []);
@@ -181,6 +220,10 @@ const HomePage = () => {
                             : msg
                     )
                 );
+                
+                // Refresh the chat list after a successful new message
+                refetchChats();
+                
             } catch (apiError: any) {
                 console.error('API Error:', apiError);
 
@@ -222,20 +265,28 @@ const HomePage = () => {
         }
     }
 
-    const handleNewChat = () => {
-        // Add a new chat (demo logic)
-        const newId = uuid.v4() as string;
-        setAllChats(prev => [...prev, { id: newId, title: `Chat ${prev.length + 1}` }]);
+    const handleNewChat = async () => {
+        // Add a new chat (in a real implementation, you would call an API)
+        try {
+            // Create a new chat and then refresh the chat list
+            // TODO: Implement API call to create a new chat
+            
+            // After creating a new chat, refetch the chat list
+            await refetchChats();
+        } catch (error) {
+            console.error('Error creating new chat:', error);
+        }
     };
 
     const handleSelectChat = (id: string) => {
         // Switch to selected chat (demo logic)
+        console.log(`Selected chat: ${id}`);
         bottomSheetRef.current?.close();
+        // TODO: Implement loading chat history for the selected chat
     };
 
     // Add a function to handle toggling the bottom sheet
     const handleBottomSheetToggle = useCallback(() => {
-        console.log('handleBottomSheetToggle', isBottomSheetOpen)
         if (bottomSheetRef.current) {
             if (isBottomSheetOpen) {
                 bottomSheetRef.current.close();
@@ -364,13 +415,14 @@ const HomePage = () => {
                 }}
             >
                 <ChatSheetContent 
-                  chats={allChats} 
+                  chats={chats || []} 
                   onSelectChat={handleSelectChat}
                   onNewChat={handleNewChat}
                   onClose={() => {
                     bottomSheetRef.current?.close();
                     setIsBottomSheetOpen(false);
-                  }} 
+                  }}
+                  isLoading={isChatsLoading}
                 />
             </BottomSheet>
             {/* End Bottom Sheet */}
