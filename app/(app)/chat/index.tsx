@@ -339,13 +339,13 @@ const HomePage = () => {
                     <Button
                         onPress={handleChatSubmit}
                         disabled={isSubmitting || chatInput === ""}
-                        className="w-16 h-16 rounded-full flex justify-center items-center"
+                        // className="w-16 h-16 rounded-full flex justify-center items-center"
                         style={{ backgroundColor: palette.primary }}
                     >
                         {isSubmitting ? (
-                            <ActivityIndicator size="small" color={palette.background} />
+                            <ActivityIndicator size="small" color={palette['primary-foreground']} />
                         ) : (
-                            <Ionicons name="arrow-up-outline" size={24} color={palette.background} />
+                            <Ionicons name="arrow-up-outline" size={24} color={palette['primary-foreground']} />
                         )}
                     </Button>
                 </View>
