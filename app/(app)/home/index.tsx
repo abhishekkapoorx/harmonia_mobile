@@ -13,9 +13,11 @@ import { Avatar, AvatarImage, AvatarFallback } from '~/components/ui/avatar'
 import { Text } from '~/components/ui/text'
 import { Button } from '~/components/ui/button'
 import { NAV_THEME } from '@/lib/constants'
+import { useColorScheme } from '@/lib/useColorScheme'
 
 const HomePage = () => {
     const router = useRouter();
+    const { isDarkColorScheme } = useColorScheme();
 
     useEffect(() => {
         const getUserDetails = async () => {
@@ -106,8 +108,9 @@ const HomePage = () => {
                                     </View>
                                 </View>
                             </View>
-                            <Button variant="secondary" size="icon" className="ml-2 bg-accent">
-                                <Text className="text-lg text-card-foreground">›</Text>
+                            <Button variant="secondary" size="icon" className="ml-2 bg-primary">
+                                
+                                <Ionicons name="chevron-forward" size={16} color={NAV_THEME[isDarkColorScheme ? 'dark' : 'light']['primary-foreground']} />
                             </Button>
                         </CardHeader>
                     </Card>

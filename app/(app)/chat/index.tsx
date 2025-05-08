@@ -54,6 +54,20 @@ interface ChatResponseInterface {
     chats: ChatInterface[];
 }
 
+interface ChatMessage {
+    chat_id: string;
+    content: string;
+    created_at: string;
+    id: string;
+    sent_by: "user" | "ai";
+    updated_at: string;
+}
+
+interface ChatMessagesResponse {
+    chat_id: string;
+    messages: ChatMessage[];
+}
+
 // Function to fetch all chats
 const fetchUserChats = async (): Promise<ChatInterface[]> => {
     try {
@@ -61,6 +75,41 @@ const fetchUserChats = async (): Promise<ChatInterface[]> => {
         return response.data.chats;
     } catch (error) {
         console.error('Error fetching chats:', error);
+        throw error;
+    }
+};
+
+// Function to create a new chat
+const createNewChat = async (): Promise<ChatInterface> => {
+    try {
+        const response = await axiosInstance.post<{ chat: ChatInterface }>('/chat/create-chat');
+        return response.data.chat;
+    } catch (error) {
+        console.error('Error creating new chat:', error);
+        throw error;
+    }
+};
+
+// Function to fetch messages for a specific chat
+const fetchChatMessages = async (chatId: string): Promise<ChatMessage[]> => {
+    try {
+        const response = await axiosInstance.get<ChatMessagesResponse>(`/chat/${chatId}/get-messages`);
+        return response.data.messages;
+    } catch (error) {
+        console.error(`Error fetching messages for chat ${chatId}:`, error);
+        throw error;
+    }
+};
+
+// Function to send a message to a specific chat
+const sendChatMessage = async (chatId: string, message: string): Promise<ChatMessage> => {
+    try {
+        const response = await axiosInstance.post<{ message: ChatMessage }>(`/chat/send-message/${chatId}`, {
+            message: message
+        });
+        return response.data.message;
+    } catch (error) {
+        console.error(`Error sending message to chat ${chatId}:`, error);
         throw error;
     }
 };
@@ -135,6 +184,7 @@ const HomePage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const flatListRef = React.useRef<FlatList>(null);
     const [inputHeight, setInputHeight] = useState(48);
+    const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
     
     // Use React Query to fetch chats
     const { 
@@ -148,14 +198,36 @@ const HomePage = () => {
         queryFn: fetchUserChats,
     });
 
+    // Query to fetch messages for the selected chat
+    const {
+        data: chatMessages,
+        isLoading: isChatMessagesLoading,
+        refetch: refetchChatMessages
+    } = useQuery({
+        queryKey: ['chatMessages', selectedChatId],
+        queryFn: () => selectedChatId ? fetchChatMessages(selectedChatId) : Promise.resolve([]),
+        enabled: !!selectedChatId, // Only run the query if a chat is selected
+    });
+
     const [chatData, setChatData] = useState<ChatDataInterface[]>([
         {
             user: "AI",
             message: "Hello, how can I help you today?",
             id: uuid.v4()
         },
-
     ]);
+
+    // Convert API chat messages to the format used by the component
+    React.useEffect(() => {
+        if (chatMessages && chatMessages.length > 0) {
+            const formattedMessages = chatMessages.map(msg => ({
+                id: msg.id,
+                user: msg.sent_by === 'ai' ? 'AI' : 'user',
+                message: msg.content
+            }));
+            setChatData(formattedMessages);
+        }
+    }, [chatMessages]);
 
     const bottomSheetRef = useRef<BottomSheet>(null);
     const snapPoints = useMemo(() => ['50%', '80%'], []);
@@ -171,7 +243,7 @@ const HomePage = () => {
     }, [chatData]);
 
     const handleChatSubmit = async () => {
-        if (chatInput === "" || isSubmitting) return
+        if (chatInput === "" || isSubmitting || !selectedChatId) return
         try {
             setIsSubmitting(true)
 
@@ -192,37 +264,21 @@ const HomePage = () => {
             }];
 
             setChatData(withLoadingMessage);
-            // console.log('Sending request to API...');
 
             try {
-                // Use axiosInstance with proper error handling
-                const response = await axiosInstance.post("/chatbot/chat", {
-                    input: chatInput,
-                    format: "markdown" // Request markdown-formatted responses
-                });
-
-                // console.log('Response status:', response.status);
-                // console.log('Response data:', response.data);
-
-                // With axios, we don't need to parse the JSON response
-                // as axios does it automatically
-                const responseData = response.data;
-
-                if (!responseData || !responseData.response) {
-                    throw new Error('API response missing expected "response" field');
-                }
-
-                // Replace the loading message with the actual response
+                // Send the message to the selected chat
+                await sendChatMessage(selectedChatId, chatInput);
+                
+                // Fetch updated messages to get the AI response
+                await refetchChatMessages();
+                
+                // Remove loading message after fetching updated messages
                 setChatData(prevChat =>
-                    prevChat.map(msg =>
-                        msg.id === loadingMessageId
-                            ? { ...msg, message: responseData.response, isLoading: false }
-                            : msg
-                    )
+                    prevChat.filter(msg => msg.id !== loadingMessageId)
                 );
                 
-                // Refresh the chat list after a successful new message
-                refetchChats();
+                // Refresh the chat list after a successful message
+                await refetchChats();
                 
             } catch (apiError: any) {
                 console.error('API Error:', apiError);
@@ -266,23 +322,53 @@ const HomePage = () => {
     }
 
     const handleNewChat = async () => {
-        // Add a new chat (in a real implementation, you would call an API)
         try {
-            // Create a new chat and then refresh the chat list
-            // TODO: Implement API call to create a new chat
+            // Create a new chat
+            const newChat = await createNewChat();
             
-            // After creating a new chat, refetch the chat list
+            // Close the bottom sheet
+            bottomSheetRef.current?.close();
+            setIsBottomSheetOpen(false);
+            
+            // Select the new chat
+            handleSelectChat(newChat.id);
+            
+            // Refresh the chat list
             await refetchChats();
         } catch (error) {
             console.error('Error creating new chat:', error);
         }
     };
 
-    const handleSelectChat = (id: string) => {
-        // Switch to selected chat (demo logic)
+    const handleSelectChat = async (id: string) => {
         console.log(`Selected chat: ${id}`);
+        
+        // Set the selected chat ID
+        setSelectedChatId(id);
+        
+        // Show a loading message
+        setChatData([{
+            user: "AI",
+            message: "Loading chat history...",
+            id: uuid.v4(),
+            isLoading: true
+        }]);
+        
+        try {
+            // This will trigger the useQuery to fetch chat messages
+            await refetchChatMessages();
+        } catch (error) {
+            console.error('Error fetching chat messages:', error);
+            setChatData([{
+                user: "AI",
+                message: "Failed to load chat history. Please try again.",
+                id: uuid.v4()
+            }]);
+        }
+
+        // Close the bottom sheet
         bottomSheetRef.current?.close();
-        // TODO: Implement loading chat history for the selected chat
+        setIsBottomSheetOpen(false);
     };
 
     // Add a function to handle toggling the bottom sheet
@@ -304,7 +390,11 @@ const HomePage = () => {
             <SafeAreaView className="flex flex-1 bg-card w-full items-center gap-5">
                 <StatusBar style="auto" />
                 {/* <ProfileNavbar /> */}
-                <ChatHeader onToggleSidebar={handleBottomSheetToggle} onNewChat={handleNewChat} />
+                <ChatHeader 
+                    onToggleSidebar={handleBottomSheetToggle} 
+                    onNewChat={handleNewChat} 
+                    chatTitle={selectedChatId && chats ? chats.find(chat => chat.id === selectedChatId)?.title || "Chat" : "Chat"}
+                />
                 <FlatList
                     ref={flatListRef}
                     data={chatData}
