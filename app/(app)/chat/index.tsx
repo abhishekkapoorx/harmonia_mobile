@@ -4,8 +4,8 @@ import axiosInstance from '@/http/axiosInstance';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar'
-import React, { useState, useCallback } from 'react'
-import { FlatList, ImageBackground, SafeAreaView, Text, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator } from 'react-native'
+import React, { useState, useCallback, useRef, useMemo } from 'react'
+import { FlatList, ImageBackground, SafeAreaView, TextInput, TouchableOpacity, View, ScrollView, ActivityIndicator, Modal, Pressable } from 'react-native'
 import uuid from 'react-native-uuid';
 import Markdown from 'react-native-markdown-display';
 import { Card, CardHeader, CardContent, CardFooter } from '~/components/ui/card';
@@ -15,6 +15,12 @@ import { useColorScheme } from '~/lib/useColorScheme';
 import { Textarea } from '~/components/ui/textarea';
 import { cn } from '@/lib/utils copy';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { Text } from '~/components/ui/text';
+import { ChatHeader } from '~/components/ui/ChatHeader';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomSheetHandleComponent from '@/components/ui/BottomSheetHandleComponent';
+import ChatSheetFooter from '@/components/ui/ChatSheetFooter';
 
 // Utility function to safely handle markdown content
 const sanitizeMarkdown = (content: string): string => {
@@ -35,6 +41,62 @@ interface ChatDataInterface {
     isLoading?: boolean;
 }
 
+// Chat List component for BottomSheet
+const ChatSheetContent = ({ 
+  chats, 
+  onSelectChat,
+  onNewChat, 
+  onClose 
+}: { 
+  chats: { id: string; title: string }[];
+  onSelectChat: (id: string) => void;
+  onNewChat: () => void;
+  onClose: () => void;
+}) => {
+  const { isDarkColorScheme } = useColorScheme();
+  const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
+  
+  return (
+    <View style={{ flex: 1 }}>
+
+      <BottomSheetView style={{ flex: 1, padding: 16 }}>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-lg font-bold text-foreground">All Chats</Text>
+
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onPress={onClose}
+            className="h-8 w-8 rounded-full"
+          >
+            <Ionicons name="close" size={20} color={palette.foreground} />
+          </Button>
+        </View>
+        
+        {chats.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-8">
+            <Text className="text-muted-foreground text-base">No chats yet</Text>
+          </View>
+        ) : (
+          chats.map(chat => (
+            <Pressable 
+              key={chat.id} 
+              className="py-3 rounded-lg px-2 web:hover:bg-muted/60 active:bg-muted/80" 
+              onPress={() => { 
+                onSelectChat(chat.id); 
+                onClose();
+              }}
+            >
+              <Text className="text-base text-foreground">{chat.title}</Text>
+            </Pressable>
+          ))
+        )}
+      </BottomSheetView>
+      <ChatSheetFooter onNewChat={onNewChat} />
+    </View>
+  );
+};
+
 const HomePage = () => {
     const { isDarkColorScheme } = useColorScheme();
     const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
@@ -42,6 +104,10 @@ const HomePage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const flatListRef = React.useRef<FlatList>(null);
     const [inputHeight, setInputHeight] = useState(48);
+    const [allChats, setAllChats] = useState<{ id: string; title: string }[]>([
+        { id: '1', title: 'General' },
+        { id: '2', title: 'Health' },
+    ]);
 
     const [chatData, setChatData] = useState<ChatDataInterface[]>([
         {
@@ -51,6 +117,10 @@ const HomePage = () => {
         },
 
     ])
+
+    const bottomSheetRef = useRef<BottomSheet>(null);
+    const snapPoints = useMemo(() => ['50%', '80%'], []);
+    const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
     // Scroll to the bottom of the chat when messages change
     React.useEffect(() => {
@@ -152,106 +222,159 @@ const HomePage = () => {
         }
     }
 
+    const handleNewChat = () => {
+        // Add a new chat (demo logic)
+        const newId = uuid.v4() as string;
+        setAllChats(prev => [...prev, { id: newId, title: `Chat ${prev.length + 1}` }]);
+    };
+
+    const handleSelectChat = (id: string) => {
+        // Switch to selected chat (demo logic)
+        bottomSheetRef.current?.close();
+    };
+
+    // Add a function to handle toggling the bottom sheet
+    const handleBottomSheetToggle = useCallback(() => {
+        console.log('handleBottomSheetToggle', isBottomSheetOpen)
+        if (bottomSheetRef.current) {
+            if (isBottomSheetOpen) {
+                bottomSheetRef.current.close();
+                setIsBottomSheetOpen(false);
+            } else {
+                bottomSheetRef.current.snapToIndex(0);
+                setIsBottomSheetOpen(true);
+            }
+        }
+    }, [isBottomSheetOpen]);
+
     return (
-        <SafeAreaView className="flex flex-1 bg-background w-full items-center gap-5">
-            <StatusBar style="auto" />
-            <ProfileNavbar />
-            <FlatList
-                ref={flatListRef}
-                data={chatData}
-                keyExtractor={(item) => item.id.toString()}
-                nestedScrollEnabled={true}
-                showsVerticalScrollIndicator={true}
-                initialNumToRender={chatData.length}
-                maxToRenderPerBatch={10}
-                windowSize={10}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-                contentContainerStyle={{ paddingBottom: 112, paddingTop: 16 }}
-                renderItem={({ item }) => (
-                    <View className={`w-full flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
-                        <Animated.View entering={FadeIn} exiting={FadeOut}>
-                            <Card
-                                className={cn(
-                                    "my-2 w-11/12",
-                                    item.user === "AI"
-                                        ? "bg-primary/20"
-                                        : "bg-primary/90"
-                                )}
-                            >
-                                <CardHeader className="pb-2">
-                                    <Text
-                                        className={cn(
-                                            "text-base font-semibold",
-                                            item.user === "AI" ? "text-foreground" : "text-primary-foreground"
-                                        )}
-                                    >
-                                        {item.user === "AI" ? "AI" : "You"}
-                                    </Text>
-                                </CardHeader>
-                                <CardContent className="pt-0">
-                                    {item.user === "AI" && item.isLoading ? (
-                                        <CardFooter className="pl-0 pt-2">
-                                            <View className="flex-row items-center">
-                                                <Text className="text-lg mr-2 text-primary-foreground">
-                                                    Thinking
-                                                </Text>
-                                                <ActivityIndicator size="small" color={palette.text} />
-                                            </View>
-                                        </CardFooter>
-                                    ) : item.user === "AI" ? (
-                                        <ScrollView>
-                                            <Markdown
-                                                style={{
-                                                    body: { color: palette["foreground"], fontSize: 16 },
-                                                    heading1: { color: palette["foreground"], fontSize: 22, fontWeight: 'bold' },
-                                                    heading2: { color: palette["foreground"], fontSize: 20, fontWeight: 'bold' },
-                                                    heading3: { color: palette["foreground"], fontSize: 18, fontWeight: 'bold' },
-                                                    link: { color: palette["foreground"], textDecorationLine: 'underline' },
-                                                    list_item: { color: palette["foreground"], fontSize: 16 },
-                                                    code_block: { backgroundColor: palette.card, padding: 10, borderRadius: 5, fontFamily: 'monospace' },
-                                                    code_inline: { backgroundColor: palette.card, padding: 2, borderRadius: 3, fontFamily: 'monospace' },
-                                                    paragraph: { marginBottom: 10, marginTop: 0 }
-                                                }}
-                                            >
-                                                {sanitizeMarkdown(item.message || '')}
-                                            </Markdown>
-                                        </ScrollView>
-                                    ) : (
-                                        <Text className="text-lg text-primary-foreground">
-                                            {item.message}
-                                        </Text>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            
+            <SafeAreaView className="flex flex-1 bg-card w-full items-center gap-5">
+                <StatusBar style="auto" />
+                {/* <ProfileNavbar /> */}
+                <ChatHeader onToggleSidebar={handleBottomSheetToggle} onNewChat={handleNewChat} />
+                <FlatList
+                    ref={flatListRef}
+                    data={chatData}
+                    keyExtractor={(item) => item.id.toString()}
+                    nestedScrollEnabled={true}
+                    showsVerticalScrollIndicator={true}
+                    initialNumToRender={chatData.length}
+                    maxToRenderPerBatch={10}
+                    windowSize={10}
+                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                    onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                    contentContainerStyle={{ paddingBottom: 112, paddingTop: 16 }}
+                    renderItem={({ item }) => (
+                        <View className={`w-full flex ${item.user === "AI" ? "items-start" : "items-end"} justify-end`}>
+                            <Animated.View entering={FadeIn} exiting={FadeOut}>
+                                <Card
+                                    className={cn(
+                                        "my-2 w-11/12",
+                                        item.user === "AI"
+                                            ? "bg-primary/20"
+                                            : "bg-primary/90"
                                     )}
-                                </CardContent>
-                            </Card>
-                        </Animated.View>
-                    </View>
-                )}
-            />
-            <View className='w-full flex-row justify-between items-center p-4 h-fit'>
-                <Textarea
-                    placeholder="Type a message"
-                    className="flex-1 bg-background text-foreground mr-2"
-                    placeholderClassName="text-muted-foreground"
-                    value={chatInput}
-                    onChangeText={(text: string) => setChatInput(text)}
-                    numberOfLines={3}
-                    multiline
-                />
-                <Button
-                    onPress={handleChatSubmit}
-                    disabled={isSubmitting || chatInput === ""}
-                    className="w-16 h-16 rounded-full flex justify-center items-center"
-                    style={{ backgroundColor: palette.primary }}
-                >
-                    {isSubmitting ? (
-                        <ActivityIndicator size="small" color={palette.background} />
-                    ) : (
-                        <Ionicons name="arrow-up-outline" size={24} color={palette.background} />
+                                >
+                                    <CardHeader className="pb-2">
+                                        <Text
+                                            className={cn(
+                                                "text-base font-semibold",
+                                                item.user === "AI" ? "text-foreground" : "text-primary-foreground"
+                                            )}
+                                        >
+                                            {item.user === "AI" ? "AI" : "You"}
+                                        </Text>
+                                    </CardHeader>
+                                    <CardContent className="pt-0">
+                                        {item.user === "AI" && item.isLoading ? (
+                                            <CardFooter className="pl-0 pt-2">
+                                                <View className="flex-row items-center">
+                                                    <Text className="text-lg mr-2 text-foreground">
+                                                        Thinking
+                                                    </Text>
+                                                    <ActivityIndicator size="small" color={palette.text} />
+                                                </View>
+                                            </CardFooter>
+                                        ) : item.user === "AI" ? (
+                                            <ScrollView>
+                                                <Markdown
+                                                    style={{
+                                                        body: { color: palette["foreground"], fontSize: 16 },
+                                                        heading1: { color: palette["foreground"], fontSize: 22, fontWeight: 'bold' },
+                                                        heading2: { color: palette["foreground"], fontSize: 20, fontWeight: 'bold' },
+                                                        heading3: { color: palette["foreground"], fontSize: 18, fontWeight: 'bold' },
+                                                        link: { color: palette["foreground"], textDecorationLine: 'underline' },
+                                                        list_item: { color: palette["foreground"], fontSize: 16 },
+                                                        code_block: { backgroundColor: palette.card, padding: 10, borderRadius: 5, fontFamily: 'monospace' },
+                                                        code_inline: { backgroundColor: palette.card, padding: 2, borderRadius: 3, fontFamily: 'monospace' },
+                                                        paragraph: { marginBottom: 10, marginTop: 0 }
+                                                    }}
+                                                >
+                                                    {sanitizeMarkdown(item.message || '')}
+                                                </Markdown>
+                                            </ScrollView>
+                                        ) : (
+                                            <Text className="text-lg text-primary-foreground">
+                                                {item.message}
+                                            </Text>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Animated.View>
+                        </View>
                     )}
-                </Button>
-            </View>
-        </SafeAreaView>
+                />
+                <View className='w-full flex-row justify-between items-center p-4 h-fit'>
+                    <Textarea
+                        placeholder="Type a message"
+                        className="flex-1 bg-background text-foreground mr-2"
+                        placeholderClassName="text-muted-foreground"
+                        value={chatInput}
+                        onChangeText={(text: string) => setChatInput(text)}
+                        numberOfLines={3}
+                        multiline
+                    />
+                    <Button
+                        onPress={handleChatSubmit}
+                        disabled={isSubmitting || chatInput === ""}
+                        className="w-16 h-16 rounded-full flex justify-center items-center"
+                        style={{ backgroundColor: palette.primary }}
+                    >
+                        {isSubmitting ? (
+                            <ActivityIndicator size="small" color={palette.background} />
+                        ) : (
+                            <Ionicons name="arrow-up-outline" size={24} color={palette.background} />
+                        )}
+                    </Button>
+                </View>
+            </SafeAreaView>
+
+            {/* Bottom Sheet for Chats - move to top for overlay priority */}
+            <BottomSheet
+                ref={bottomSheetRef}
+                index={-1}
+                snapPoints={snapPoints}
+                enablePanDownToClose
+                backgroundStyle={{ backgroundColor: palette['background'] }}
+                handleComponent={BottomSheetHandleComponent}
+                onChange={(index) => {
+                    setIsBottomSheetOpen(index !== -1);
+                }}
+            >
+                <ChatSheetContent 
+                  chats={allChats} 
+                  onSelectChat={handleSelectChat}
+                  onNewChat={handleNewChat}
+                  onClose={() => {
+                    bottomSheetRef.current?.close();
+                    setIsBottomSheetOpen(false);
+                  }} 
+                />
+            </BottomSheet>
+            {/* End Bottom Sheet */}
+        </GestureHandlerRootView>
     )
 }
 
