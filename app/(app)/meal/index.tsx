@@ -83,7 +83,7 @@ const MealSheetContent = ({
           <Text className="text-lg font-bold text-foreground">Meal Plans</Text>
           <View className="flex-row">
             <Button 
-              variant="ghost" 
+              variant="link" 
               size="icon" 
               onPress={onRefresh}
               className="h-8 w-8 rounded-full mr-2"
@@ -91,7 +91,7 @@ const MealSheetContent = ({
               <Ionicons name="refresh" size={20} color={palette.foreground} />
             </Button>
             <Button 
-              variant="ghost" 
+              variant="link" 
               size="icon" 
               onPress={onClose}
               className="h-8 w-8 rounded-full"
@@ -136,7 +136,7 @@ const MealSheetContent = ({
           </ScrollView>
         )}
       </BottomSheetView>
-      <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)' }}>
+      {/* <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)' }}>
         <Button
           variant="default"
           className="w-full flex-row items-center justify-center"
@@ -149,7 +149,7 @@ const MealSheetContent = ({
           <Ionicons name="add-circle-outline" size={18} color={palette['primary-foreground']} />
           <Text className="ml-2 text-primary-foreground">Create New Meal Plan</Text>
         </Button>
-      </View>
+      </View> */}
     </View>
   );
 };
