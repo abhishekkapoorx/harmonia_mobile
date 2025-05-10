@@ -16,7 +16,7 @@ import { Textarea } from '~/components/ui/textarea';
 import { cn } from '@/lib/utils copy';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Text } from '~/components/ui/text';
-import { ChatHeader } from '~/components/ui/ChatHeader';
+import { Header } from '@/components/ui/Header';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheetHandleComponent from '@/components/ui/BottomSheetHandleComponent';
@@ -118,13 +118,13 @@ const sendChatMessage = async (chatId: string, message: string): Promise<ChatMes
 const ChatSheetContent = ({ 
   chats, 
   onSelectChat,
-  onNewChat, 
+  onAdd, 
   onClose,
   isLoading
 }: { 
   chats: ChatInterface[];
   onSelectChat: (id: string) => void;
-  onNewChat: () => void;
+  onAdd: () => void;
   onClose: () => void;
   isLoading: boolean;
 }) => {
@@ -172,7 +172,7 @@ const ChatSheetContent = ({
           ))
         )}
       </BottomSheetView>
-      <ChatSheetFooter onNewChat={onNewChat} />
+      <ChatSheetFooter onAdd={onAdd} />
     </View>
   );
 };
@@ -390,9 +390,9 @@ const HomePage = () => {
             <SafeAreaView className="flex flex-1 bg-card w-full items-center gap-5">
                 <StatusBar style="auto" />
                 {/* <ProfileNavbar /> */}
-                <ChatHeader 
+                <Header 
                     onToggleSidebar={handleBottomSheetToggle} 
-                    onNewChat={handleNewChat} 
+                    onAdd={handleNewChat} 
                     chatTitle={selectedChatId && chats ? chats.find(chat => chat.id === selectedChatId)?.title || "Chat" : "Chat"}
                 />
                 <FlatList
@@ -507,7 +507,7 @@ const HomePage = () => {
                 <ChatSheetContent 
                   chats={chats || []} 
                   onSelectChat={handleSelectChat}
-                  onNewChat={handleNewChat}
+                  onAdd={handleNewChat}
                   onClose={() => {
                     bottomSheetRef.current?.close();
                     setIsBottomSheetOpen(false);

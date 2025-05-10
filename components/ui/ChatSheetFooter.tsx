@@ -7,10 +7,10 @@ import { NAV_THEME } from '@/lib/constants';
 import { Text } from './text';
 
 interface ChatSheetFooterProps {
-  onNewChat: () => void;
+  onAdd: () => void;
 }
 
-export const ChatSheetFooter: React.FC<ChatSheetFooterProps> = ({ onNewChat }) => {
+export const ChatSheetFooter: React.FC<ChatSheetFooterProps> = ({ onAdd }) => {
   const { isDarkColorScheme } = useColorScheme();
   const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
   
@@ -19,7 +19,7 @@ export const ChatSheetFooter: React.FC<ChatSheetFooterProps> = ({ onNewChat }) =
       <Button
         variant="default"
         className="w-full flex-row items-center justify-center"
-        onPress={onNewChat}
+        onPress={onAdd}
       >
         <Ionicons name="add-circle-outline" size={18} color={palette['primary-foreground']} />
         <Text className="ml-2 text-primary-foreground">New Chat</Text>

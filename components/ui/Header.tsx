@@ -7,13 +7,14 @@ import { NAV_THEME } from '@/lib/constants';
 import { router } from 'expo-router';
 import React from 'react'
 
-interface ChatHeaderProps {
+interface HeaderProps {
   onToggleSidebar: () => void;
-  onNewChat: () => void;
+  onAdd?: () => void;
   chatTitle?: string;
+  rightContent?: React.ReactNode;
 }
 
-export const ChatHeader = ({ onToggleSidebar, onNewChat, chatTitle = "Chat" }: ChatHeaderProps) => {
+export const Header = ({ onToggleSidebar, onAdd, chatTitle = "App", rightContent }: HeaderProps) => {
   const { isDarkColorScheme } = useColorScheme();
   const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
 
@@ -23,9 +24,15 @@ export const ChatHeader = ({ onToggleSidebar, onNewChat, chatTitle = "Chat" }: C
         <Ionicons name="menu" size={24} color={palette.foreground} />
       </Button>
       <Text className="text-xl font-bold text-foreground">{chatTitle}</Text>
-      <Button variant="link" size="icon" onPress={onNewChat} className="text-primary-foreground">
-        <Ionicons name="add" size={24} color={palette.foreground} />
-      </Button>
+      {rightContent ? (
+        rightContent
+      ) : onAdd ? (
+        <Button variant="link" size="icon" onPress={onAdd} className="text-primary-foreground">
+          <Ionicons name="add" size={24} color={palette.foreground} />
+        </Button>
+      ) : (
+        <View style={{ width: 40 }} />
+      )}
     </View>
   )
 } 

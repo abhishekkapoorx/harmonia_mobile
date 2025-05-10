@@ -1,31 +1,92 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ImageBackground } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, ScrollView, ImageBackground, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useSession } from '@/providers/SessionCtx';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Header } from '@/components/ui/Header';
+import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '~/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import axiosInstance from '@/http/axiosInstance';
+import { NAV_THEME } from '@/lib/constants';
+import { useColorScheme } from '~/lib/useColorScheme';
+import { Textarea } from '~/components/ui/textarea';
+import { Button } from '~/components/ui/button';
 import { Ionicons } from '@expo/vector-icons';
-import ProfileNavbar from '@/components/ProfileNavbar';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '~/components/ui/card';
+import BottomSheet from '@gorhom/bottom-sheet';
 
-// Define meal type
-type MealType = 'Breakfast' | 'Lunch' | 'Dinner';
-
-// Define meal item interface
-interface MealItem {
-  meal: string;
-  nutritional_value: string;
-}
-
-// Define weekly meal plan interface
-interface WeeklyMealPlan {
-  [day: string]: {
-    [mealType: string]: MealItem;
+// Define meal plan interface
+interface MealPlan {
+  created_at: string;
+  id: string;
+  is_active: boolean;
+  plan_data: {
+    [day: string]: {
+      Breakfast: string;
+      Lunch: string;
+      Dinner: string;
+    };
   };
+  updated_at: string;
+  user_id: string;
 }
+
+interface MealPlanResponse {
+  meal_plan: MealPlan;
+  msg: string;
+}
+
+// Function to fetch the active meal plan
+const fetchActiveMealPlan = async (): Promise<MealPlan> => {
+  const response = await axiosInstance.get<MealPlanResponse>('/meal-plan/meal-plans/active');
+  return response.data.meal_plan;
+};
+
+// Function to create a new meal plan
+const createMealPlan = async (prompt: string): Promise<void> => {
+  await axiosInstance.post('/meal-plan/meal-plans/create', {
+    preferences: prompt
+  });
+};
+
+// Function to fetch all meal plans
+export interface AllMealPlansResponse {
+  meal_plans: MealPlan[];
+}
+
+export const fetchAllMealPlans = async (): Promise<AllMealPlansResponse> => {
+  const response = await axiosInstance.get<AllMealPlansResponse>('/meal-plan/meal-plans');
+  return response.data;
+};
 
 const MealPlannerPage = () => {
+  const { isDarkColorScheme } = useColorScheme();
+  const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
   const { userData } = useSession();
   const [selectedDay, setSelectedDay] = useState('Monday');
-  const [query, setQuery] = useState('');
+  const [mealPrompt, setMealPrompt] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Bottom sheet ref and handler
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const handleToggleBottomSheet = () => {
+  console.log("clicked")
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.expand();
+    }
+  };
+
+  // Use React Query to fetch the meal plan
+  const {
+    data: mealPlan,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isRefetching
+  } = useQuery({
+    queryKey: ['activeMealPlan'],
+    queryFn: fetchActiveMealPlan,
+  });
 
   // Days of the week for the tab selector
   const daysOfWeek = [
@@ -38,232 +99,230 @@ const MealPlannerPage = () => {
     'Sunday',
   ];
 
-  // Weekly meal plan data
-  const weeklyMealPlan: WeeklyMealPlan = {
-    "Monday": {
-      "Breakfast": {
-        "meal": "Oatmeal with banana and almond milk",
-        "nutritional_value": "400 calories, 70g carbs, 10g protein, 10g fat"
-      },
-      "Lunch": {
-        "meal": "Quinoa salad with roasted vegetables and avocado",
-        "nutritional_value": "550 calories, 80g carbs, 20g protein, 20g fat"
-      },
-      "Dinner": {
-        "meal": "Lentil soup with whole wheat bread",
-        "nutritional_value": "600 calories, 80g carbs, 20g protein, 15g fat"
-      }
-    },
-    "Tuesday": {
-      "Breakfast": {
-        "meal": "Avocado toast with scrambled tofu",
-        "nutritional_value": "350 calories, 30g carbs, 15g protein, 20g fat"
-      },
-      "Lunch": {
-        "meal": "Grilled vegetable wrap with hummus",
-        "nutritional_value": "450 calories, 60g carbs, 10g protein, 15g fat"
-      },
-      "Dinner": {
-        "meal": "Roasted sweet potato and black bean tacos",
-        "nutritional_value": "500 calories, 60g carbs, 15g protein, 15g fat"
-      }
-    },
-    "Wednesday": {
-      "Breakfast": {
-        "meal": "Greek yogurt with berries and granola",
-        "nutritional_value": "300 calories, 40g carbs, 15g protein, 10g fat"
-      },
-      "Lunch": {
-        "meal": "Veggie stir-fry with brown rice",
-        "nutritional_value": "500 calories, 70g carbs, 10g protein, 15g fat"
-      },
-      "Dinner": {
-        "meal": "Baked salmon (replaced with tofu for vegetarian option)",
-        "nutritional_value": "400 calories, 0g carbs, 20g protein, 20g fat"
-      }
-    },
-    "Thursday": {
-      "Breakfast": {
-        "meal": "Smoothie bowl with banana, almond milk, and almond butter",
-        "nutritional_value": "400 calories, 60g carbs, 10g protein, 15g fat"
-      },
-      "Lunch": {
-        "meal": "Lentil and vegetable curry with brown rice",
-        "nutritional_value": "600 calories, 80g carbs, 20g protein, 20g fat"
-      },
-      "Dinner": {
-        "meal": "Grilled portobello mushroom burgers with sweet potato fries",
-        "nutritional_value": "550 calories, 60g carbs, 15g protein, 20g fat"
-      }
-    },
-    "Friday": {
-      "Breakfast": {
-        "meal": "Avocado and spinach omelette with whole wheat toast",
-        "nutritional_value": "350 calories, 30g carbs, 15g protein, 20g fat"
-      },
-      "Lunch": {
-        "meal": "Quinoa and black bean salad with grilled vegetables",
-        "nutritional_value": "500 calories, 60g carbs, 15g protein, 15g fat"
-      },
-      "Dinner": {
-        "meal": "Roasted vegetable and tofu skewers with quinoa",
-        "nutritional_value": "500 calories, 60g carbs, 20g protein, 15g fat"
-      }
-    },
-    "Saturday": {
-      "Breakfast": {
-        "meal": "Overnight oats with almond milk and banana",
-        "nutritional_value": "400 calories, 60g carbs, 10g protein, 10g fat"
-      },
-      "Lunch": {
-        "meal": "Veggie and hummus wrap with mixed greens",
-        "nutritional_value": "450 calories, 60g carbs, 10g protein, 15g fat"
-      },
-      "Dinner": {
-        "meal": "Baked tofu and roasted vegetable quinoa bowl",
-        "nutritional_value": "550 calories, 60g carbs, 20g protein, 15g fat"
-      }
-    },
-    "Sunday": {
-      "Breakfast": {
-        "meal": "Scrambled tofu with roasted vegetables and whole wheat toast",
-        "nutritional_value": "350 calories, 30g carbs, 15g protein, 15g fat"
-      },
-      "Lunch": {
-        "meal": "Lentil soup with whole wheat bread and a side salad",
-        "nutritional_value": "600 calories, 80g carbs, 20g protein, 15g fat"
-      },
-      "Dinner": {
-        "meal": "Grilled portobello mushroom burgers with roasted sweet potato and avocado",
-        "nutritional_value": "550 calories, 60g carbs, 15g protein, 20g fat"
-      }
+  // Get current day's meals
+  const getCurrentDayMeals = () => {
+    if (!mealPlan || !mealPlan.plan_data || !mealPlan.plan_data[selectedDay]) {
+      return {
+        Breakfast: "No meal plan available",
+        Lunch: "No meal plan available",
+        Dinner: "No meal plan available"
+      };
+    }
+    return mealPlan.plan_data[selectedDay];
+  };
+
+  const currentDayMeals = getCurrentDayMeals();
+
+  // Extract a preview of the text (first 150 characters)
+  const getPreview = (text: string): string => {
+    if (!text) return "No meal plan available";
+    return text;
+    if (text.length <= 150) return text;
+    return `${text.substring(0, 150)}...`;
+  };
+
+  // Handle creating a new meal plan
+  const handleCreateMealPlan = async () => {
+    if (mealPrompt.trim() === '' || isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Show feedback that we're creating the meal plan
+      console.log('Creating new meal plan...');
+      
+      // Create the new meal plan
+      await createMealPlan(mealPrompt);
+      
+      // Clear the input
+      setMealPrompt('');
+      
+      // Refresh the active meal plan
+      await refetch();
+      
+      console.log('Meal plan created successfully!');
+    } catch (error) {
+      console.error('Error creating meal plan:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Get current day's meals
-  const currentDayMeals = weeklyMealPlan[selectedDay] || {
-    Breakfast: { meal: "", nutritional_value: "" },
-    Lunch: { meal: "", nutritional_value: "" },
-    Dinner: { meal: "", nutritional_value: "" }
-  };
-
-  // Calculate total calories for the selected day
-  const calculateTotalCalories = () => {
-    let total = 0;
-    
-    Object.values(currentDayMeals).forEach(item => {
-      // Extract calories from nutritional_value string
-      const caloriesMatch = item.nutritional_value.match(/(\d+)\s*calories/);
-      if (caloriesMatch && caloriesMatch[1]) {
-        total += parseInt(caloriesMatch[1]);
-      }
-    });
-    
-    return total;
-  };
-
-  // Extract calories from nutritional value
-  const extractCalories = (nutritionalValue: string) => {
-    const caloriesMatch = nutritionalValue.match(/(\d+)\s*calories/);
-    return caloriesMatch ? caloriesMatch[1] : "0";
-  };
-
-  // Calculate total calories once when component mounts or when selectedDay changes
-  const [totalCalories, setTotalCalories] = useState(0);
-  
-  useEffect(() => {
-    setTotalCalories(calculateTotalCalories());
-  }, [selectedDay]);
-
   return (
-    <ImageBackground 
-      source={require('@/assets/images/Group 25.png')} 
-      className="flex-1"
-    >
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView className="flex-1 bg-background">
-        <ProfileNavbar />
-        <View className="flex px-5">
-          {/* Day selector as horizontal tabs */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            className="mb-5"
-          >
-            <View className="flex-row py-2">
-              {daysOfWeek.map((day) => (
-                <TouchableOpacity
-                  key={day}
-                  className={`px-4 py-2 mx-1 rounded-full ${selectedDay === day ? 'bg-accent' : 'bg-card border border-border'}`}
-                  onPress={() => setSelectedDay(day)}
-                >
-                  <Text
-                    className={`text-base font-semibold ${selectedDay === day ? 'text-accent-foreground' : 'text-card-foreground'}`}
-                  >
-                    {day}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-          {/* All meals in a single view */}
-          <ScrollView className="flex mb-5">
-            {/* Breakfast */}
-            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
-              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
-                <CardTitle className="text-lg font-bold text-card-foreground">Breakfast</CardTitle>
-                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Breakfast.nutritional_value)} Kcal</Text>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Breakfast.meal}</Text>
-                <Text className="text-sm text-muted-foreground">{currentDayMeals.Breakfast.nutritional_value}</Text>
-              </CardContent>
-            </Card>
-            {/* Lunch */}
-            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
-              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
-                <CardTitle className="text-lg font-bold text-card-foreground">Lunch</CardTitle>
-                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Lunch.nutritional_value)} Kcal</Text>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Lunch.meal}</Text>
-                <Text className="text-sm text-muted-foreground">{currentDayMeals.Lunch.nutritional_value}</Text>
-              </CardContent>
-            </Card>
-            {/* Dinner */}
-            <Card className="bg-card rounded-2xl p-4 mb-4 shadow-sm">
-              <CardHeader className="flex-row justify-between items-center mb-2 p-0">
-                <CardTitle className="text-lg font-bold text-card-foreground">Dinner</CardTitle>
-                <Text className="text-base font-medium text-muted-foreground">{extractCalories(currentDayMeals.Dinner.nutritional_value)} Kcal</Text>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Text className="text-base text-card-foreground mb-2">{currentDayMeals.Dinner.meal}</Text>
-                <Text className="text-sm text-muted-foreground">{currentDayMeals.Dinner.nutritional_value}</Text>
-              </CardContent>
-            </Card>
-          </ScrollView>
-          {/* Total calories */}
-          <Card className="bg-card rounded-2xl p-4 mb-5 shadow-sm">
-            <CardHeader className="flex-row justify-between items-center p-0">
-              <CardTitle className="text-lg font-bold text-card-foreground">Total Calories</CardTitle>
-              <Text className="text-lg font-bold text-card-foreground">{totalCalories} Kcal</Text>
-            </CardHeader>
-          </Card>
-          {/* Search bar */}
-          <View className="flex-row mb-5 items-center">
-            <TextInput
-              className="flex-1 bg-card py-2.5 px-5 rounded-full mr-2.5 border border-border text-foreground"
-              placeholder="Type your query here..."
-              placeholderTextColor="hsl(var(--muted-foreground))"
-              value={query}
-              onChangeText={setQuery}
-            />
-            <TouchableOpacity className="w-12 h-12 rounded-full bg-accent justify-center items-center">
-              <Ionicons name="arrow-up" size={24} color="hsl(var(--accent-foreground))" />
+        <Header 
+          chatTitle="Meal Planner"
+          onToggleSidebar={handleToggleBottomSheet}
+        />
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color={palette.primary} />
+            <Text className="mt-4 text-foreground">Loading meal plan...</Text>
+          </View>
+        ) : isError ? (
+          <View className="flex-1 justify-center items-center p-4">
+            <Text className="text-red-500 text-center mb-4">
+              Error loading meal plan: {error instanceof Error ? error.message : 'Unknown error'}
+            </Text>
+            <TouchableOpacity
+              className="bg-primary px-4 py-2 rounded-md"
+              onPress={() => refetch()}
+            >
+              <Text className="text-primary-foreground">Retry</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <ScrollView
+            className="flex px-5"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl 
+                refreshing={isRefetching} 
+                onRefresh={refetch}
+                colors={[palette.primary]} 
+                tintColor={palette.primary}
+              />
+            }
+          >
+            {/* Day selector as horizontal tabs */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              className="mb-5"
+            >
+              <View className="flex-row py-2">
+                {daysOfWeek.map((day) => (
+                  <TouchableOpacity
+                    key={day}
+                    className={`px-4 py-2 mx-1 rounded-full ${selectedDay === day ? 'bg-primary' : 'bg-card border border-border'}`}
+                    onPress={() => setSelectedDay(day)}
+                  >
+                    <Text
+                      className={`text-base font-semibold ${selectedDay === day ? 'text-primary-foreground' : 'text-card-foreground'}`}
+                    >
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            
+            {/* Input for creating a new meal plan */}
+            <Card className="bg-card rounded-lg mb-4 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold text-card-foreground">Create New Meal Plan</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="Describe your dietary preferences or restrictions (e.g., 'Create a vegetarian meal plan with 2000 calories per day')"
+                  className="bg-background text-foreground mb-2"
+                  placeholderClassName="text-muted-foreground"
+                  value={mealPrompt}
+                  onChangeText={setMealPrompt}
+                  numberOfLines={3}
+                  multiline
+                />
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  className="w-full" 
+                  onPress={handleCreateMealPlan}
+                  disabled={isSubmitting || mealPrompt.trim() === ''}
+                >
+                  {isSubmitting ? (
+                    <ActivityIndicator size="small" color={palette['primary-foreground']} />
+                  ) : (
+                    <View className="flex-row items-center">
+                      <Text className="text-primary-foreground mr-2">Generate Meal Plan</Text>
+                      <Ionicons name="arrow-forward" size={16} color={palette['primary-foreground']} />
+                    </View>
+                  )}
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* All meals in a single scrollable view */}
+            {/* Breakfast */}
+            <Card className="bg-card rounded-lg mb-4 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold text-card-foreground">Breakfast</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TouchableOpacity 
+                  className="mb-2"
+                  onPress={() => {
+                    // Add modal or navigation to full meal details if needed
+                  }}
+                >
+                  <Text className="text-base text-card-foreground">
+                    {getPreview(currentDayMeals.Breakfast)}
+                  </Text>
+                </TouchableOpacity>
+              </CardContent>
+            </Card>
+            
+            {/* Lunch */}
+            <Card className="bg-card rounded-lg mb-4 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold text-card-foreground">Lunch</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TouchableOpacity 
+                  className="mb-2"
+                  onPress={() => {
+                    // Add modal or navigation to full meal details if needed
+                  }}
+                >
+                  <Text className="text-base text-card-foreground">
+                    {getPreview(currentDayMeals.Lunch)}
+                  </Text>
+                </TouchableOpacity>
+              </CardContent>
+            </Card>
+            
+            {/* Dinner */}
+            <Card className="bg-card rounded-lg mb-4 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold text-card-foreground">Dinner</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TouchableOpacity 
+                  className="mb-2"
+                  onPress={() => {
+                    // Add modal or navigation to full meal details if needed
+                  }}
+                >
+                  <Text className="text-base text-card-foreground">
+                    {getPreview(currentDayMeals.Dinner)}
+                  </Text>
+                </TouchableOpacity>
+              </CardContent>
+            </Card>
+            
+            {/* Last Updated */}
+            <Card className="bg-card rounded-lg mb-4 shadow-sm">
+              <CardContent className="py-3">
+                <Text className="text-sm text-muted-foreground text-center">
+                  Last updated: {new Date(mealPlan?.updated_at || Date.now()).toLocaleDateString()}
+                </Text>
+              </CardContent>
+            </Card>
+          </ScrollView>
+        )}
       </SafeAreaView>
-    </ImageBackground>
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={['20%', '50%']}
+        >
+          {/* Bottom sheet content here */}
+          <View className="flex-1 items-center justify-center">
+            <Text className="text-lg">Menu / Navigation</Text>
+          </View>
+        </BottomSheet>
+    </GestureHandlerRootView>
   );
 };
 
