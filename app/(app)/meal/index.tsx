@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, ImageBackground, ActivityIndicator, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View, Text, ScrollView, ImageBackground, ActivityIndicator, RefreshControl, TouchableOpacity, Alert, Pressable } from 'react-native';
 import { useSession } from '@/providers/SessionCtx';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,7 +12,8 @@ import { useColorScheme } from '~/lib/useColorScheme';
 import { Textarea } from '~/components/ui/textarea';
 import { Button } from '~/components/ui/button';
 import { Ionicons } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import BottomSheetHandleComponent from '@/components/ui/BottomSheetHandleComponent';
 
 // Define meal plan interface
 interface MealPlan {
@@ -58,6 +59,101 @@ export const fetchAllMealPlans = async (): Promise<AllMealPlansResponse> => {
   return response.data;
 };
 
+// Meal Sheet Content component for Bottom Sheet
+const MealSheetContent = ({ 
+  mealPlans, 
+  onSelectMealPlan,
+  onClose,
+  isLoading,
+  onRefresh
+}: { 
+  mealPlans: MealPlan[];
+  onSelectMealPlan: (id: string) => void;
+  onClose: () => void;
+  isLoading: boolean;
+  onRefresh: () => void;
+}) => {
+  const { isDarkColorScheme } = useColorScheme();
+  const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
+  
+  return (
+    <View style={{ flex: 1 }}>
+      <BottomSheetView style={{ flex: 1, padding: 16 }}>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-lg font-bold text-foreground">Meal Plans</Text>
+          <View className="flex-row">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onPress={onRefresh}
+              className="h-8 w-8 rounded-full mr-2"
+            >
+              <Ionicons name="refresh" size={20} color={palette.foreground} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onPress={onClose}
+              className="h-8 w-8 rounded-full"
+            >
+              <Ionicons name="close" size={20} color={palette.foreground} />
+            </Button>
+          </View>
+        </View>
+        
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center py-8">
+            <ActivityIndicator size="small" color={palette.foreground} />
+            <Text className="text-muted-foreground text-base mt-2">Loading meal plans...</Text>
+          </View>
+        ) : mealPlans.length === 0 ? (
+          <View className="flex-1 items-center justify-center py-8">
+            <Text className="text-muted-foreground text-base">No meal plans yet</Text>
+          </View>
+        ) : (
+          <ScrollView className="flex-1">
+            {mealPlans.map(plan => (
+              <Pressable 
+                key={plan.id} 
+                className={`py-3 rounded-lg px-4 mb-2 ${plan.is_active ? 'bg-primary/20' : 'bg-card'} border border-border`}
+                onPress={() => { 
+                  onSelectMealPlan(plan.id); 
+                  onClose();
+                }}
+              >
+                <View className="flex-row justify-between items-center">
+                  <Text className="text-base text-foreground font-semibold">
+                    {new Date(plan.created_at).toLocaleDateString()}
+                  </Text>
+                  {plan.is_active && (
+                    <View className="bg-primary px-2 py-1 rounded-full">
+                      <Text className="text-xs text-primary-foreground">Active</Text>
+                    </View>
+                  )}
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+      </BottomSheetView>
+      <View style={{ padding: 16, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)' }}>
+        <Button
+          variant="default"
+          className="w-full flex-row items-center justify-center"
+          onPress={() => {
+            onClose();
+            // Scroll to the textarea for creating a new meal plan
+            // This is a placeholder - you might want to implement additional logic
+          }}
+        >
+          <Ionicons name="add-circle-outline" size={18} color={palette['primary-foreground']} />
+          <Text className="ml-2 text-primary-foreground">Create New Meal Plan</Text>
+        </Button>
+      </View>
+    </View>
+  );
+};
+
 const MealPlannerPage = () => {
   const { isDarkColorScheme } = useColorScheme();
   const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
@@ -66,16 +162,26 @@ const MealPlannerPage = () => {
   const [mealPrompt, setMealPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Bottom sheet ref and handler
+  // Bottom sheet ref and state for bottom sheet
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const handleToggleBottomSheet = () => {
-  console.log("clicked")
-    if (bottomSheetRef.current) {
-      bottomSheetRef.current.expand();
-    }
-  };
+  const snapPoints = useMemo(() => ['50%', '80%'], []);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
-  // Use React Query to fetch the meal plan
+  // Handle toggling the bottom sheet
+  const handleToggleBottomSheet = useCallback(() => {
+    console.log("clicked");
+    if (bottomSheetRef.current) {
+      if (isBottomSheetOpen) {
+        bottomSheetRef.current.close();
+        setIsBottomSheetOpen(false);
+      } else {
+        bottomSheetRef.current.snapToIndex(0);
+        setIsBottomSheetOpen(true);
+      }
+    }
+  }, [isBottomSheetOpen]);
+
+  // Use React Query to fetch the active meal plan
   const {
     data: mealPlan,
     isLoading,
@@ -88,6 +194,27 @@ const MealPlannerPage = () => {
     queryFn: fetchActiveMealPlan,
   });
 
+  // Use React Query to fetch all meal plans
+  const {
+    data: allMealPlans,
+    isLoading: isAllMealPlansLoading,
+    refetch: refetchAllMealPlans
+  } = useQuery({
+    queryKey: ['allMealPlans'],
+    queryFn: fetchAllMealPlans,
+  });
+
+  // Function to set a meal plan as active
+  const setMealPlanActive = async (id: string) => {
+    try {
+      await axiosInstance.put(`/meal-plan/meal-plans/${id}/activate`);
+      await refetch(); // Refetch the active meal plan
+      await refetchAllMealPlans(); // Refetch all meal plans to update statuses
+    } catch (error) {
+      console.error('Error activating meal plan:', error);
+    }
+  };
+  
   // Days of the week for the tab selector
   const daysOfWeek = [
     'Monday',
@@ -312,16 +439,31 @@ const MealPlannerPage = () => {
           </ScrollView>
         )}
       </SafeAreaView>
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={-1}
-          snapPoints={['20%', '50%']}
-        >
-          {/* Bottom sheet content here */}
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-lg">Menu / Navigation</Text>
-          </View>
-        </BottomSheet>
+      
+      {/* Bottom Sheet for Meal Plans */}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: palette['background'] }}
+        handleComponent={BottomSheetHandleComponent}
+        onChange={(index) => {
+          setIsBottomSheetOpen(index !== -1);
+        }}
+      >
+        <MealSheetContent 
+          mealPlans={allMealPlans?.meal_plans || []} 
+          onSelectMealPlan={setMealPlanActive}
+          onClose={() => {
+            bottomSheetRef.current?.close();
+            setIsBottomSheetOpen(false);
+          }}
+          isLoading={isAllMealPlansLoading}
+          onRefresh={refetchAllMealPlans}
+        />
+      </BottomSheet>
+      {/* End Bottom Sheet */}
     </GestureHandlerRootView>
   );
 };
