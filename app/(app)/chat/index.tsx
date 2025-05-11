@@ -171,7 +171,7 @@ const ChatSheetContent = ({
                 className="h-8 w-8 rounded-full"
                 onPress={() => handleEditChatName(chat.id, chat.title)}
               >
-                <Ionicons name="pencil-outline" size={16} color={palette.foreground} />
+                <Ionicons name="pencil" size={16} color={palette.foreground} />
               </Button>
             </View>
           ))
