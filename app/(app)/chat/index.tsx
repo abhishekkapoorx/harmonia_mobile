@@ -25,6 +25,7 @@ import { useQuery } from '@tanstack/react-query';
 import { showModal } from '@/redux-store/slice/ModalSlice';
 import { EDIT_CHAT_MODAL } from '@/lib/constants';
 import { useDispatch } from 'react-redux';
+import { ChatDataInterface, ChatInterface, ChatResponseInterface, ChatMessage, ChatMessagesResponse } from '@/lib/types';
 
 // Utility function to safely handle markdown content
 const sanitizeMarkdown = (content: string): string => {
@@ -37,39 +38,6 @@ const sanitizeMarkdown = (content: string): string => {
         .replace(/\\t/g, '\t') // Replace escaped tabs with actual tabs
         .trim();
 };
-
-interface ChatDataInterface {
-    id: string;
-    user: string;
-    message: string;
-    isLoading?: boolean;
-}
-
-interface ChatInterface {
-    created_at: string;
-    id: string;
-    title: string;
-    updated_at: string;
-    user_id: string;
-}
-
-interface ChatResponseInterface {
-    chats: ChatInterface[];
-}
-
-interface ChatMessage {
-    chat_id: string;
-    content: string;
-    created_at: string;
-    id: string;
-    sent_by: "user" | "ai";
-    updated_at: string;
-}
-
-interface ChatMessagesResponse {
-    chat_id: string;
-    messages: ChatMessage[];
-}
 
 // Function to fetch all chats
 const fetchUserChats = async (): Promise<ChatInterface[]> => {
