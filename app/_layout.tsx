@@ -9,17 +9,26 @@ import '~/global.css';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { store } from "@/redux-store/store/store";
+import { Provider } from "react-redux";
+import BaseModal from "@/components/modals/BaseModal";
 
 // Create a client
 const queryClient = new QueryClient();
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
-  colors: NAV_THEME.light,
+  colors: {
+    ...NAV_THEME.light,
+    notification: 'red', // Add required notification property
+  },
 };
 const DARK_THEME: Theme = {
   ...DarkTheme,
-  colors: NAV_THEME.dark,
+  colors: {
+    ...NAV_THEME.dark,
+    notification: 'red', // Add required notification property
+  },
 };
 
 export {
@@ -51,17 +60,20 @@ export default function RootLayout() {
 
   return (
     <>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-          <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-          <SessionProvider>
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="auth" />
-            </Stack>
-          </SessionProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
+      <Provider store={store}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+            <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+            <SessionProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="auth" />
+              </Stack>
+              <BaseModal />
+            </SessionProvider>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </Provider>
       <PortalHost />
     </>
 

@@ -4,7 +4,7 @@ import axios from "axios";
 const axiosInstance = axios.create();
 
 
-axiosInstance.defaults.baseURL = "http://192.168.132.25:5000/";
+axiosInstance.defaults.baseURL = "http://192.168.219.25:5000";
 // axiosInstance.defaults.baseURL = "https://harmonia-flask.onrender.com/";
 
 

@@ -13,7 +13,7 @@ import { Button } from '~/components/ui/button';
 import { NAV_THEME } from '@/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { Textarea } from '~/components/ui/textarea';
-import { cn } from '@/lib/utils copy';
+import { cn } from '@/lib/utils';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Text } from '~/components/ui/text';
 import { Header } from '@/components/ui/Header';
@@ -22,6 +22,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomSheetHandleComponent from '@/components/ui/BottomSheetHandleComponent';
 import ChatSheetFooter from '@/components/ui/ChatSheetFooter';
 import { useQuery } from '@tanstack/react-query';
+import { showModal } from '@/redux-store/slice/ModalSlice';
+import { EDIT_CHAT_MODAL } from '@/lib/constants';
+import { useDispatch } from 'react-redux';
 
 // Utility function to safely handle markdown content
 const sanitizeMarkdown = (content: string): string => {
@@ -120,16 +123,37 @@ const ChatSheetContent = ({
   onSelectChat,
   onAdd, 
   onClose,
-  isLoading
+  isLoading,
+  refetchChats
 }: { 
   chats: ChatInterface[];
   onSelectChat: (id: string) => void;
   onAdd: () => void;
   onClose: () => void;
   isLoading: boolean;
+  refetchChats: () => Promise<any>;
 }) => {
   const { isDarkColorScheme } = useColorScheme();
   const palette = NAV_THEME[isDarkColorScheme ? 'dark' : 'light'];
+  const dispatch = useDispatch();
+
+  const handleEditChatName = (chatId: string, currentTitle: string) => {
+    console.log('[DEBUG] Opening edit modal for chat:', chatId, currentTitle);
+    dispatch(showModal({
+      modalType: EDIT_CHAT_MODAL,
+      modalProps: { 
+        chatId,
+        currentTitle,
+        onSuccess: () => {
+          // Refresh the chat list after update
+          console.log('[DEBUG] Edit successful, refreshing chats');
+          refetchChats();
+        }
+      },
+      modalTitle: "Edit Chat Name",
+      showCloseBtn: true,
+    }));
+  };
   
   return (
     <View style={{ flex: 1 }}>
@@ -159,16 +183,29 @@ const ChatSheetContent = ({
           </View>
         ) : (
           chats.map(chat => (
-            <Pressable 
+            <View 
               key={chat.id} 
-              className="py-3 rounded-lg px-2 web:hover:bg-muted/60 active:bg-muted/80" 
-              onPress={() => { 
-                onSelectChat(chat.id); 
-                onClose();
-              }}
+              className="py-3 rounded-lg px-2 flex-row justify-between items-center"
             >
-              <Text className="text-base text-foreground">{chat.title}</Text>
-            </Pressable>
+              <Pressable 
+                className="flex-1 web:hover:bg-muted/60 active:bg-muted/80" 
+                onPress={() => { 
+                  onSelectChat(chat.id); 
+                  onClose();
+                }}
+              >
+                <Text className="text-base text-foreground">{chat.title}</Text>
+              </Pressable>
+              
+              <Button 
+                variant="link" 
+                size="icon" 
+                className="h-8 w-8 rounded-full"
+                onPress={() => handleEditChatName(chat.id, chat.title)}
+              >
+                <Ionicons name="pencil-outline" size={16} color={palette.foreground} />
+              </Button>
+            </View>
           ))
         )}
       </BottomSheetView>
@@ -513,6 +550,7 @@ const HomePage = () => {
                     setIsBottomSheetOpen(false);
                   }}
                   isLoading={isChatsLoading}
+                  refetchChats={refetchChats}
                 />
             </BottomSheet>
             {/* End Bottom Sheet */}

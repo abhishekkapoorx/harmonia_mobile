@@ -169,7 +169,6 @@ const MealPlannerPage = () => {
 
   // Handle toggling the bottom sheet
   const handleToggleBottomSheet = useCallback(() => {
-    console.log("clicked");
     if (bottomSheetRef.current) {
       if (isBottomSheetOpen) {
         bottomSheetRef.current.close();
