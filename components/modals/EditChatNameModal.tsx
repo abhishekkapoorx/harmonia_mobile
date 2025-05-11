@@ -8,6 +8,7 @@ import { Button } from '~/components/ui/button'
 import { useColorScheme } from '~/lib/useColorScheme'
 import { NAV_THEME } from '@/lib/constants'
 import axiosInstance from '@/http/axiosInstance'
+import { ChatInterface } from '@/lib/types'
 
 interface EditChatNameModalProps {
   chatId?: string;
@@ -38,10 +39,16 @@ const EditChatNameModal = ({ chatId, currentTitle = '', onSuccess }: EditChatNam
     setError('')
 
     try {
-      // Update chat name using API
-      await axiosInstance.patch(`/chat/update-chat/${chatId}`, {
+      // Update chat name using the rename-chat endpoint with PUT method
+      const response = await axiosInstance.put<{
+        chat: ChatInterface;
+        msg: string;
+      }>('/chat/rename-chat', {
+        chat_id: chatId,
         title: newChatName.trim()
       })
+
+      console.log('[DEBUG] Chat renamed successfully:', response.data.chat.title)
 
       // Close modal
       dispatch(hideModal())
