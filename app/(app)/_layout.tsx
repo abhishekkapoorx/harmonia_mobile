@@ -1,5 +1,5 @@
 import { useSession } from '@/providers/SessionCtx'
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Ionicons } from '@expo/vector-icons'
 import { Redirect, Tabs } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React from 'react'
@@ -10,11 +10,17 @@ import { ThemeProvider, DefaultTheme, DarkTheme } from '@react-navigation/native
 
 const LIGHT_THEME = {
   ...DefaultTheme,
-  colors: NAV_THEME.light,
+  colors: {
+    ...NAV_THEME.light,
+    notification: 'red',
+  },
 };
 const DARK_THEME = {
   ...DarkTheme,
-  colors: NAV_THEME.dark,
+  colors: {
+    ...NAV_THEME.dark,
+    notification: 'red',
+  },
 };
 
 const HomeLayout = () => {
@@ -42,7 +48,7 @@ const HomeLayout = () => {
                 <Tabs
                     screenOptions={{
                         headerShown: false,
-                        tabBarActiveTintColor: isDarkColorScheme ? NAV_THEME.dark.primary : NAV_THEME.light.primary,
+                        tabBarActiveTintColor: isDarkColorScheme ? NAV_THEME.dark['primary-foreground'] : NAV_THEME.light.primary,
                         tabBarInactiveTintColor: isDarkColorScheme ? NAV_THEME.dark.text : NAV_THEME.light.text,
                         tabBarStyle: {
                             paddingBottom: 10,
@@ -58,8 +64,8 @@ const HomeLayout = () => {
                         name="home"
                         options={{
                             tabBarLabel: 'Home',
-                            tabBarIcon: ({ color, size }) => (
-                                <Ionicons name="home-outline" size={size} color={color} />
+                            tabBarIcon: ({ color, size, focused }) => (
+                                <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
                             ),
                         }}
                     />
@@ -67,8 +73,8 @@ const HomeLayout = () => {
                         name="chat"
                         options={{
                             tabBarLabel: 'Chat',
-                            tabBarIcon: ({ color, size }) => (
-                                <MaterialCommunityIcons name="chat-outline" size={size} color={color} />
+                            tabBarIcon: ({ color, size, focused }) => (
+                                <Ionicons name={focused ? "chatbubble" : "chatbubble-outline"} size={size} color={color} />
                             ),
                         }}
                     />
@@ -76,8 +82,8 @@ const HomeLayout = () => {
                         name="meal"
                         options={{
                             tabBarLabel: 'Meal',
-                            tabBarIcon: ({ color, size }) => (
-                                <MaterialCommunityIcons name="food-outline" size={size} color={color} />
+                            tabBarIcon: ({ color, size, focused }) => (
+                                <Ionicons name={focused ? "restaurant" : "restaurant-outline"} size={size} color={color} />
                             ),
                         }}
                     />
@@ -85,8 +91,8 @@ const HomeLayout = () => {
                         name="health"
                         options={{
                             tabBarLabel: 'Health',
-                            tabBarIcon: ({ color, size }) => (
-                                <Ionicons name="fitness-outline" size={size} color={color} />
+                            tabBarIcon: ({ color, size, focused }) => (
+                                <Ionicons name={focused ? "fitness" : "fitness-outline"} size={size} color={color} />
                             ),
                         }}
                     />
