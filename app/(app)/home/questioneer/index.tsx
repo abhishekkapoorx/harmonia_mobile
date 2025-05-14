@@ -430,10 +430,10 @@ const Questioneer = () => {
                             <Button
                                 disabled={!isValid || isSubmitting}
                                 onPress={() => handleSubmit()}
-                                
-
                             >
-                                <Text>Submit Health Details</Text>
+                                <Text className="text-primary-foreground">
+                                    {isSubmitting ? "Submitting..." : "Submit Health Details"}
+                                </Text>
                             </Button>
                         </View>
                     </View>
