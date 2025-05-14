@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '~/components/ui/text';
 import ProfileNavbar from '@/components/ProfileNavbar';
 import { DateData } from 'react-native-calendars';
 import { NAV_THEME } from '@/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
+import { router } from 'expo-router';
+import { Card, CardContent, CardHeader } from '~/components/ui/card';
 
 // Import modular components
 import MenstrualCalendar from '@/components/health/MenstrualCalendar';
@@ -121,7 +123,31 @@ const HealthPage = () => {
     <SafeAreaView className="flex-1 bg-background">
       <ProfileNavbar />
       
-      <ScrollView className="flex-1 p-4">
+      <ScrollView className="flex-1 px-4 py-8">
+
+        {/* PCOS Prediction Card */}
+        <Text className="text-2xl font-bold text-foreground mb-4">PCOS Prediction</Text>
+
+        <TouchableOpacity 
+          onPress={() => router.push("/(app)/health/pcos-prediction")}
+          activeOpacity={0.7}
+          className='mb-6'
+        >
+          <Card className="mb-6">
+            <CardHeader>
+              <Text className="text-lg font-semibold text-foreground">PCOS Prediction</Text>
+            </CardHeader>
+            <CardContent>
+              <Text className="text-sm text-foreground mb-2">
+                Predict PCOS using lab test data and ultrasound images.
+              </Text>
+              <Text className="text-xs text-muted-foreground">
+                Tap to access prediction tools and history
+              </Text>
+            </CardContent>
+          </Card>
+        </TouchableOpacity>
+
         <Text className="text-2xl font-bold text-foreground mb-4">Cycle Tracking</Text>
         
         {/* Calendar Card */}
@@ -160,6 +186,8 @@ const HealthPage = () => {
           setFlow={setFlow}
           onSave={saveCycleSettings}
         />
+        
+        
       </ScrollView>
     </SafeAreaView>
   );
