@@ -6,39 +6,111 @@ import { Ionicons } from '@expo/vector-icons'
 import { AxiosError } from 'axios'
 import { useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import React, { useEffect } from 'react'
-import { Alert, FlatList, Image, ImageBackground, SafeAreaView, ScrollView, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Alert, FlatList, Image, ImageBackground, SafeAreaView, ScrollView, View, ActivityIndicator, RefreshControl } from 'react-native'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '~/components/ui/card'
 import { Avatar, AvatarImage, AvatarFallback } from '~/components/ui/avatar'
 import { Text } from '~/components/ui/text'
 import { Button } from '~/components/ui/button'
 import { NAV_THEME } from '@/lib/constants'
 import { useColorScheme } from '@/lib/useColorScheme'
+import { useQuery } from '@tanstack/react-query'
+
+// Define types for user data
+interface UserHealthDetails {
+  acneSkinIssues: string;
+  age: string;
+  createdAt: string;
+  dietType: string;
+  exerciseFrequency: string;
+  fatigue: string;
+  fertilityTreatments: string;
+  hairLoss: string;
+  heavyBleeding: string;
+  height: string;
+  hirsutism: string;
+  medicalHistory: string;
+  medications: string;
+  mentalHealthIssues: string;
+  pcosDiagnosis: string;
+  periodDuration: string;
+  periodRegularity: string;
+  processedFoodConsumption: string;
+  severeCramps: string;
+  sleepDisturbances: string;
+  sleepHours: string;
+  stressLevels: string;
+  sugarCravings: string;
+  waterIntake: string;
+  weight: string;
+  weightGain: string;
+}
+
+interface UserHealthDetailsResponse {
+  data: UserHealthDetails;
+  msg: string;
+}
+
+interface UserProfileInfo {
+  created_at: string;
+  email: string;
+  name: string;
+  role: string;
+  user_id: string;
+}
+
+interface UserProfileResponse {
+  msg: string;
+  user: UserProfileInfo;
+}
 
 const HomePage = () => {
     const router = useRouter();
     const { isDarkColorScheme } = useColorScheme();
+    const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        const getUserDetails = async () => {
+    // Fetch user health details
+    const { data: healthResponse, isLoading: isHealthLoading, error: healthError, refetch: refetchHealth } = useQuery({
+        queryKey: ['userHealthDetails'],
+        queryFn: async () => {
             try {
-                const userDetails = await axiosInstance.get('/user/user-details')
-
+                const response = await axiosInstance.get<UserHealthDetailsResponse>('/user/user-details');
+                return response.data;
             } catch (error: any) {
-                if (error.response.status === 401) {
-                    Alert.alert('Unauthorized', error.response.data.msg)
-                    router.push('/auth/sign-in')
+                if (error.response?.status === 404) {
+                    router.push('/home/questioneer');
                 }
-                else if (error.response.status === 404) {
-                    Alert.alert('User Details Not Found', error.response.data.msg)
-                    router.push('/home/questioneer')
-                }
-                Alert.alert('Error', error.data.msg)
-
+                throw error;
             }
-        };
-        getUserDetails();
-    }, []);
+        },
+        retry: 1
+    });
+
+    // Fetch user profile information
+    const { data: profileResponse, isLoading: isProfileLoading, refetch: refetchProfile } = useQuery({
+        queryKey: ['userProfileInfo'],
+        queryFn: async () => {
+            const response = await axiosInstance.get<UserProfileResponse>('/auth/protected');
+            return response.data;
+        },
+        retry: 1
+    });
+
+    const isLoading = isHealthLoading || isProfileLoading;
+    const healthData = healthResponse?.data;
+    const profileData = profileResponse?.user;
+
+    // Handle pull-to-refresh
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await Promise.all([refetchHealth(), refetchProfile()]);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const flatListData = [
         {
@@ -75,45 +147,152 @@ const HomePage = () => {
         },
     ]
 
-
     return (
-        <SafeAreaView className="flex-1 bg-background items-center">
-            {/* <ImageBackground source={require("@/assets/images/Group 25.png")} style={{ width: '100%', height: '100%' }}> */}
-                <StatusBar style="auto" />
-                <ProfileNavbar />
+        <SafeAreaView className="flex-1 bg-background">
+            <StatusBar style="auto" />
+            <ProfileNavbar />
+            <ScrollView 
+                className="flex-1"
+                refreshControl={
+                    <RefreshControl 
+                        refreshing={refreshing} 
+                        onRefresh={onRefresh}
+                        colors={[NAV_THEME.light.primary]}
+                        tintColor={NAV_THEME[isDarkColorScheme ? 'dark' : 'light'].primary}
+                    />
+                }
+            >
                 <View className="flex-1 w-full px-4 py-6 gap-6 items-center">
                     {/* Personal Medical History Card */}
                     <Card className="w-full max-w-xl rounded-3xl bg-card border border-border shadow-lg p-0 mb-4">
-                        <CardHeader className="flex-row items-center gap-4 p-6 pb-2">
-                            <Avatar alt="Helen Murfie" className="h-20 w-20 border-4 border-accent">
-                                <AvatarImage source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} />
-                                <AvatarFallback>
-                                    <Text>HM</Text>
-                                </AvatarFallback>
-                            </Avatar>
-                            <View className="flex-1 ml-2">
-                                <CardTitle className="text-2xl font-bold text-card-foreground">Helen Murfie</CardTitle>
-                                <View className="flex-row gap-4 mt-2">
-                                    <View>
-                                        <Text className="text-xs text-muted-foreground">Gender</Text>
-                                        <Text className="text-base font-semibold text-card-foreground">Female</Text>
-                                    </View>
-                                    <View>
-                                        <Text className="text-xs text-muted-foreground">Age</Text>
-                                        <Text className="text-base font-semibold text-card-foreground">29 yrs</Text>
-                                    </View>
-                                    <View>
-                                        <Text className="text-xs text-muted-foreground">Weight</Text>
-                                        <Text className="text-base font-semibold text-card-foreground">50 kg</Text>
+                        {isLoading ? (
+                            <View className="p-8 items-center justify-center">
+                                <ActivityIndicator size="large" color={NAV_THEME.light.primary} />
+                                <Text className="mt-2 text-sm text-muted-foreground">Loading user data...</Text>
+                            </View>
+                        ) : (
+                            <CardHeader className="flex-row items-center gap-4 p-6 pb-2">
+                                <Avatar alt={profileData?.name || "User"} className="h-20 w-20 border-4 border-accent">
+                                    <AvatarImage source={{ uri: 'https://randomuser.me/api/portraits/women/44.jpg' }} />
+                                    <AvatarFallback>
+                                        <Text>{profileData?.name?.charAt(0) || "U"}</Text>
+                                    </AvatarFallback>
+                                </Avatar>
+                                <View className="flex-1 ml-2">
+                                    <CardTitle className="text-2xl font-bold text-card-foreground">
+                                        {profileData?.name || "Loading..."}
+                                    </CardTitle>
+                                    <Text className="text-xs text-muted-foreground mt-1">
+                                        {profileData?.email || ""}
+                                    </Text>
+                                    <View className="flex-row gap-4 mt-2">
+                                        <View>
+                                            <Text className="text-xs text-muted-foreground">Gender</Text>
+                                            <Text className="text-base font-semibold text-card-foreground">Female</Text>
+                                        </View>
+                                        <View>
+                                            <Text className="text-xs text-muted-foreground">Age</Text>
+                                            <Text className="text-base font-semibold text-card-foreground">
+                                                {healthData?.age || "--"} yrs
+                                            </Text>
+                                        </View>
+                                        <View>
+                                            <Text className="text-xs text-muted-foreground">Weight</Text>
+                                            <Text className="text-base font-semibold text-card-foreground">
+                                                {healthData?.weight || "--"} kg
+                                            </Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                            <Button variant="secondary" size="icon" className="ml-2 bg-primary">
-                                
-                                <Ionicons name="chevron-forward" size={16} color={NAV_THEME[isDarkColorScheme ? 'dark' : 'light']['primary-foreground']} />
-                            </Button>
-                        </CardHeader>
+                                <Button 
+                                    variant="secondary" 
+                                    size="icon" 
+                                    className="ml-2 bg-primary"
+                                    onPress={() => router.push('/auth/profile')}
+                                >
+                                    <Ionicons name="chevron-forward" size={16} color={NAV_THEME[isDarkColorScheme ? 'dark' : 'light']['primary-foreground']} />
+                                </Button>
+                            </CardHeader>
+                        )}
                     </Card>
+
+                    {/* Health Summary Card */}
+                    {healthData && (
+                        <Card className="w-full max-w-xl rounded-2xl bg-card border border-border shadow p-0 mb-4">
+                            <CardHeader className="p-6 pb-2">
+                                <CardTitle className="text-lg font-semibold text-card-foreground">Health Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-6 pt-2">
+                                <View className="flex-row flex-wrap gap-2">
+                                    <View className="flex-row items-center bg-muted rounded-full px-3 py-1">
+                                        <Text className="text-xs font-medium text-foreground">
+                                            Height: {healthData.height} cm
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row items-center bg-muted rounded-full px-3 py-1">
+                                        <Text className="text-xs font-medium text-foreground">
+                                            BMI: {(Number(healthData.weight) / ((Number(healthData.height)/100) ** 2)).toFixed(1)}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row items-center bg-muted rounded-full px-3 py-1">
+                                        <Text className="text-xs font-medium text-foreground">
+                                            Diet: {healthData.dietType}
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row items-center bg-muted rounded-full px-3 py-1">
+                                        <Text className="text-xs font-medium text-foreground">
+                                            Sleep: {healthData.sleepHours} hrs
+                                        </Text>
+                                    </View>
+                                    <View className="flex-row items-center bg-muted rounded-full px-3 py-1">
+                                        <Text className="text-xs font-medium text-foreground">
+                                            Exercise: {healthData.exerciseFrequency}/week
+                                        </Text>
+                                    </View>
+                                    {healthData.pcosDiagnosis === "yes" && (
+                                        <View className="flex-row items-center bg-red-100 rounded-full px-3 py-1">
+                                            <Text className="text-xs font-medium text-red-700">
+                                                PCOS Diagnosed
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+                                
+                                {/* Risk factors section */}
+                                {(healthData.hairLoss === "yes" || 
+                                  healthData.periodRegularity === "irregular" || 
+                                  healthData.acneSkinIssues === "yes" || 
+                                  healthData.weightGain === "yes") && (
+                                    <View className="mt-4">
+                                        <Text className="text-sm font-medium text-foreground mb-2">Risk Factors:</Text>
+                                        <View className="flex-row flex-wrap gap-2">
+                                            {healthData.hairLoss === "yes" && (
+                                                <View className="flex-row items-center bg-orange-100 rounded-full px-3 py-1">
+                                                    <Text className="text-xs font-medium text-orange-700">Hair Loss</Text>
+                                                </View>
+                                            )}
+                                            {healthData.periodRegularity === "irregular" && (
+                                                <View className="flex-row items-center bg-orange-100 rounded-full px-3 py-1">
+                                                    <Text className="text-xs font-medium text-orange-700">Irregular Periods</Text>
+                                                </View>
+                                            )}
+                                            {healthData.acneSkinIssues === "yes" && (
+                                                <View className="flex-row items-center bg-orange-100 rounded-full px-3 py-1">
+                                                    <Text className="text-xs font-medium text-orange-700">Acne</Text>
+                                                </View>
+                                            )}
+                                            {healthData.weightGain === "yes" && (
+                                                <View className="flex-row items-center bg-orange-100 rounded-full px-3 py-1">
+                                                    <Text className="text-xs font-medium text-orange-700">Weight Gain</Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    </View>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
                     {/* Recent Visits Card */}
                     <Card className="w-full max-w-xl rounded-2xl bg-card border border-border shadow p-0 mb-4">
                         <CardHeader className="flex-row items-center justify-between p-6 pb-2">
@@ -167,7 +346,7 @@ const HomePage = () => {
                         ))}
                     </View>
                 </View>
-            {/* </ImageBackground> */}
+            </ScrollView>
         </SafeAreaView>
     )
 }
