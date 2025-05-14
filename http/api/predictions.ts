@@ -59,6 +59,16 @@ export interface PredictionDetailResponse {
   success: boolean;
 }
 
+export interface PCOSPredictionResponse {
+  prediction: number;
+  prediction_id: string;
+  prediction_label: string;
+  probability: string;
+  recommendation: string;
+  risk_level: string;
+  success: boolean;
+}
+
 // Get all predictions for the current user
 export const getPredictions = async (): Promise<Prediction[]> => {
   try {
@@ -88,6 +98,17 @@ export const submitPrediction = async (data: Partial<PredictionInputData>): Prom
     return response.data.prediction;
   } catch (error) {
     console.error('Error submitting prediction:', error);
+    throw error;
+  }
+};
+
+// Submit data for PCOS prediction
+export const submitPCOSPrediction = async (data: Partial<PredictionInputData>): Promise<PCOSPredictionResponse> => {
+  try {
+    const response = await axiosInstance.post<PCOSPredictionResponse>('/predict/predict-pcos', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting PCOS prediction:', error);
     throw error;
   }
 }; 
