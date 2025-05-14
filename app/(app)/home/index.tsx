@@ -64,7 +64,7 @@ const HomePage = () => {
             icon: <Ionicons name="chatbox-ellipses-outline" size={24} color={NAV_THEME.light.primary} />,
             bg: "bg-c6",
             color: "text-c1",
-            link: "/track"
+            link: "/health"
         },
         {
             title: "Recommended Products",
@@ -159,7 +159,7 @@ const HomePage = () => {
                                     <CardDescription className={`text-xs text-muted-foreground`}>{item.description}</CardDescription>
                                     {item.link && (
                                         <Button className="mt-2 h-8 px-3 py-1" size="sm" onPress={() => router.push(item.link as any)}>
-                                            <Text className="text-xs">Open</Text>
+                                            <Text className="text-xs text-primary-foreground">Open</Text>
                                         </Button>
                                     )}
                                 </View>

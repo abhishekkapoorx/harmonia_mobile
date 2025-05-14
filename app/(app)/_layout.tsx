@@ -1,26 +1,26 @@
 import { useSession } from '@/providers/SessionCtx'
 import { Ionicons } from '@expo/vector-icons'
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { Redirect, Tabs } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import React from 'react'
 import { SafeAreaView, Text } from 'react-native'
 import { NAV_THEME } from '~/lib/constants'
 import { useColorScheme } from '~/lib/useColorScheme'
-import { ThemeProvider, DefaultTheme, DarkTheme } from '@react-navigation/native'
 
 const LIGHT_THEME = {
-  ...DefaultTheme,
-  colors: {
-    ...NAV_THEME.light,
-    notification: 'red',
-  },
+    ...DefaultTheme,
+    colors: {
+        ...NAV_THEME.light,
+        notification: 'red',
+    },
 };
 const DARK_THEME = {
-  ...DarkTheme,
-  colors: {
-    ...NAV_THEME.dark,
-    notification: 'red',
-  },
+    ...DarkTheme,
+    colors: {
+        ...NAV_THEME.dark,
+        notification: 'red',
+    },
 };
 
 const HomeLayout = () => {
