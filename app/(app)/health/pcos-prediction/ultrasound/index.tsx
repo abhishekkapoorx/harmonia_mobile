@@ -1,23 +1,61 @@
-import React from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, ScrollView, Alert } from 'react-native';
 import UltrasoundImageUpload from '@/components/health/UltrasoundImageUpload';
 import { BackButtonBar } from '@/components/BackButtonBar';
+import { PredictionResult } from '@/components/health/PredictionResultCard';
+import axios from 'axios';
+import axiosInstance from '@/http/axiosInstance';
 
 export default function UltrasoundPredictionPage() {
+  const [isLoading, setIsLoading] = useState(false);
+  
   // Function to predict PCOS from ultrasound image
-  const predictFromImage = async (imageUri: string) => {
+  const predictFromImage = async (imageUri: string): Promise<PredictionResult> => {
     try {
-      // Here you would upload the image to your prediction API
+      setIsLoading(true);
       console.log('Uploading image:', imageUri);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Create form data
+      const formData = new FormData();
       
-      // Here you would process the prediction result
-      alert('Image prediction complete!');
+      // Get the filename from the URI
+      const uriParts = imageUri.split('/');
+      const fileName = uriParts[uriParts.length - 1];
+      
+      // Append the image file
+      formData.append('image', {
+        uri: imageUri,
+        name: fileName,
+        type: 'image/jpeg', // Adjust based on the image type if needed
+      } as any);
+      
+      // Make the API call
+      const response = await axiosInstance.post('/predict/predict-pcos-ultrasound', 
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      
+      console.log('Prediction response:', response.data);
+      
+      if (response.data.success) {
+        return response.data as PredictionResult;
+      } else {
+        throw new Error('Prediction failed');
+      }
     } catch (error) {
       console.error('Error predicting from image:', error);
-      throw error; // Re-throw to let the component handle it
+      Alert.alert(
+        'Prediction Error',
+        'Failed to analyze the ultrasound image. Please try again or contact support.',
+      );
+      // Return a default error result
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
